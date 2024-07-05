@@ -14,14 +14,14 @@ repositories {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2024.1.4")
+    version.set("2024.1.1")
     type.set("IC") // Target IDE Platform
 
     plugins.set(
         listOf(
             "com.intellij.java",
             "org.jetbrains.kotlin",
-            "Dart:241.17890.8"
+            "Dart:241.15989.9"
             /*"io.flutter:80.0.2",*/
             /*"org.jetbrains.android:$androidVersion"*/
         )

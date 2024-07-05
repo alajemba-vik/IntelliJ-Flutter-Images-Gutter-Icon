@@ -22,7 +22,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>Dart</depends>
     <!--<depends>io.flutter</depends>-->
-    <depends>org.jetbrains.android</depends>
+    <!--<depends>org.jetbrains.android</depends>-->
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->

@@ -6,13 +6,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 object HBGutterImageIconManager {
-    fun addGutterMark(project: Project?, editor: Editor, line: Int, containingFile: VirtualFile?, path: String) {
+    fun addGutterMark(editor: Editor, line: Int, containingFile: VirtualFile?, path: String) {
 
         if (!isFlutterFile(containingFile)) return
         val markupModel = editor.markupModel
         val highlighter = markupModel.addLineHighlighter(line, 0, null)
 
-        highlighter.gutterIconRenderer = HBFlutterGutterImageIconRenderer(path, project!!)
+        highlighter.gutterIconRenderer = HBFlutterGutterImageIconRenderer(path, editor.project!!)
     }
 
 
