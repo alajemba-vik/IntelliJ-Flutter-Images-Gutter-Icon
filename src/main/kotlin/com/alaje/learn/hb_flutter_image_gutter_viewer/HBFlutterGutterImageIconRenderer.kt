@@ -1,6 +1,7 @@
 package com.alaje.learn.hb_flutter_image_gutter_viewer
 
 import com.esotericsoftware.kryo.kryo5.minlog.Log
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -18,8 +19,8 @@ import javax.imageio.ImageIO
 import javax.swing.Icon
 import kotlin.math.min
 
-
-class HBFlutterGutterImageIconRenderer(private val path: String, val project: Project) : GutterIconRenderer(), DumbAware {
+val defaultIcon = AllIcons.General.Warning
+class HBFlutterGutterImageIconRenderer(private val path: String) : GutterIconRenderer(), DumbAware {
 
     override fun equals(other: Any?): Boolean {
         return other is HBFlutterGutterImageIconRenderer
@@ -35,7 +36,7 @@ class HBFlutterGutterImageIconRenderer(private val path: String, val project: Pr
             path,
             MAX_WIDTH,
             MAX_HEIGHT
-        )!!
+        ) ?: defaultIcon
     }
 
 
@@ -53,7 +54,7 @@ class HBFlutterGutterImageIconRenderer(private val path: String, val project: Pr
         maxWidth: Int,
         maxHeight: Int
     ): Icon? {
-        val file = LocalFileSystem.getInstance().findFileByPath(imagePath)!!
+        val file = LocalFileSystem.getInstance().findFileByPath(imagePath)  ?: return null
         return createBitmapIcon(file, maxWidth, maxHeight)
     }
 

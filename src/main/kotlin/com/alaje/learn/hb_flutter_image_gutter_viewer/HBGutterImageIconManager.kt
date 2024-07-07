@@ -12,7 +12,7 @@ object HBGutterImageIconManager {
         val markupModel = editor.markupModel
         val highlighter = markupModel.addLineHighlighter(line, 0, null)
 
-        highlighter.gutterIconRenderer = HBFlutterGutterImageIconRenderer(path, editor.project!!)
+        highlighter.gutterIconRenderer = HBFlutterGutterImageIconRenderer(path)
     }
 
 

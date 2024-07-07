@@ -21,9 +21,9 @@ intellij {
         listOf(
             "com.intellij.java",
             "org.jetbrains.kotlin",
-            "Dart:241.15989.9"
+            "Dart:241.15989.9",
             /*"io.flutter:80.0.2",*/
-            /*"org.jetbrains.android:$androidVersion"*/
+            "org.jetbrains.android:241.15989.150"
         )
     )
 }

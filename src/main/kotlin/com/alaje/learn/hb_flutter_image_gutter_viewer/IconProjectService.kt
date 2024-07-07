@@ -24,11 +24,11 @@ class IconProjectService(
     private val project: Project,
     private val cs: CoroutineScope
 ) {
-    fun loadImage(classFile: DartClass?, psiFile: PsiFile, virtualFile: VirtualFile, event: EditorFactoryEvent) {
-        /*
+    /*fun loadImage(classFile: DartClass?, psiFile: PsiFile, virtualFile: VirtualFile, event: EditorFactoryEvent) {
+        *//*
                            * static const _packageUrl = "packages/demo";
                            * static const _baseUrl = "$_packageUrl/assets/drawable";
-                           * */
+                           * *//*
         val classBody: DartClassBody? = classFile?.children?.firstOrNull {
             it is DartClassBody
         } as? DartClassBody
@@ -81,7 +81,7 @@ class IconProjectService(
 
     companion object {
         @JvmStatic fun getInstance(project: Project): IconProjectService = project.service()
-    }
+    }*/
 }
 
 /*
@@ -91,7 +91,7 @@ class MyProjectManagerListener : ProjectActivity {
     }
 }*/
 
-private val PsiElement.getAssignedString: String get() {
+val PsiElement.getAssignedString: String get() {
     return childLeafs().firstOrNull{it.isStringAssigned}?.text ?: ""
 }
 

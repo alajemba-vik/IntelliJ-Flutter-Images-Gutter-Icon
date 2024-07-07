@@ -22,13 +22,16 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>Dart</depends>
     <!--<depends>io.flutter</depends>-->
-    <!--<depends>org.jetbrains.android</depends>-->
+    <depends>org.jetbrains.android</depends>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <editorFactoryListener implementation="com.alaje.learn.hb_flutter_image_gutter_viewer.MyEditorFactoryListener"/>
+        <!--<editorFactoryListener implementation="com.alaje.learn.hb_flutter_image_gutter_viewer.MyEditorFactoryListener"/>-->
         <!--<postStartupActivity implementation="com.alaje.learn.hb_flutter_image_gutter_viewer.MyProjectManagerListener"/>-->
+        <externalAnnotator language="Dart" implementationClass="com.alaje.learn.hb_flutter_image_gutter_viewer.HBImageResourceExternalAnnotator"/>
+
     </extensions>
+
 
 </idea-plugin>
