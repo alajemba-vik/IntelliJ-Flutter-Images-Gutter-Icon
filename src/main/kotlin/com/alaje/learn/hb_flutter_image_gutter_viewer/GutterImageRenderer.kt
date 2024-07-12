@@ -55,7 +55,7 @@ class GutterIconRenderer(
         private var myNavigationTargetComputed = false
 
         override fun actionPerformed(event: AnActionEvent) {
-            val editor = event.getData(CommonDataKeys.EDITOR) ?: return
+            //val editor = event.getData(CommonDataKeys.EDITOR) ?: return
 
             Messages.showInfoMessage("Clicked", "Click action")
             /*

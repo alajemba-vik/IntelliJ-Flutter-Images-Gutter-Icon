@@ -1,32 +1,29 @@
 package com.alaje.learn.hb_flutter_image_gutter_viewer
 
-import com.android.ide.common.vectordrawable.VdPreview
-import com.android.tools.idea.rendering.DrawableRenderer
-import com.android.utils.XmlUtils
-import com.intellij.openapi.application.ApplicationManager
+
+import com.github.weisj.jsvg.nodes.SVG
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.Gray
 import com.intellij.ui.scale.ScaleContext
+import com.intellij.util.IconUtil
 import com.intellij.util.IconUtil.createImageIcon
 import com.intellij.util.ui.ImageUtil
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.util.projectStructure.getModule
+import com.kitfox.svg.SVGCache
+import com.kitfox.svg.app.beans.SVGIcon
+import java.awt.Component
 import java.awt.Dimension
-import java.awt.Image
 import java.awt.image.BufferedImage
 import java.io.IOException
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
+import java.io.InputStream
+import java.net.URI
 import javax.imageio.ImageIO
 import javax.swing.Icon
 import kotlin.math.min
+import kotlin.math.sqrt
 
 
 /**
@@ -36,7 +33,6 @@ internal object GutterIconFactory {
     private val LOG = Logger.getInstance(
         GutterIconFactory::class.java
     )
-    private const val RENDERING_SCALING_FACTOR = 10
 
     /**
      * Given the path to an image resource, returns an Icon which displays the image, scaled so that its width
@@ -50,98 +46,47 @@ internal object GutterIconFactory {
     fun createIcon(
         file: VirtualFile,
         maxWidth: Int,
-        maxHeight: Int,
-        project: Project
+        maxHeight: Int
     ): Icon? {
         val path = file.path
-        if (path.endsWith(".svg")) {
-            return createSvgIcon(file, maxWidth = maxWidth, maxHeight = maxHeight, project)
+        val icon: Icon? = if (path.endsWith(".svg")) {
+            createSvgIcon(file, maxWidth = maxWidth, maxHeight = maxHeight)
+        } else {
+            createBitmapIcon(file, maxWidth, maxHeight)
         }
-        return createBitmapIcon(file, maxWidth, maxHeight)
+
+        if (icon == null) {
+            println(String.format("Could not read icon image %1\$s", file.presentableUrl))
+        }
+        return  icon
     }
 
-    @Throws(IOException::class)
-    private fun getXmlContent(file: VirtualFile): String {
-        val document = FileDocumentManager.getInstance().getCachedDocument(file)
-            ?: return String(file.contentsToByteArray())
-
-        return document.text
-    }
 
     private fun createSvgIcon(
        file: VirtualFile,
-       maxWidth: Int, maxHeight: Int,
-         project: Project
+       maxWidth: Int,
+       maxHeight: Int
     ): Icon? {
+
         try {
 
-            val xml: String = getXmlContent(file)
-            var image: Image?
-            // If drawable is a vector drawable, use the renderer inside Studio.
-            // Otherwise, delegate to layoutlib.
-            if (xml.contains("<vector")) {
-                val imageTargetSize: VdPreview.TargetSize =
-                    VdPreview.TargetSize.createFromMaxDimension(JBUI.pixScale(maxWidth.toFloat()).toInt())
-                val document: org.w3c.dom.Document = XmlUtils.parseDocumentSilently(xml, true) ?: return null
+            val svgIcon = SVGIcon()
+            svgIcon.svgURI = URI.create(file.url)
+            svgIcon.preferredSize = Dimension(maxWidth, maxHeight)
+            svgIcon.antiAlias = true
+            svgIcon.isClipToViewbox = true
 
-                val builder = StringBuilder(100)
-                image = VdPreview.getPreviewFromVectorDocument(imageTargetSize, document, builder)
-                image = ImageUtil.ensureHiDPI(image, ScaleContext.create())
-                if (builder.isNotEmpty()) {
-                    LOG.warn("Problems rendering " + file.presentableUrl + ": " + builder)
-                }
+            val bufferedImage = IconUtil.toBufferedImage(svgIcon)
 
-            } else {
+            return createBitmapIcon(bufferedImage, maxWidth, maxHeight)
 
-                val facet = AndroidFacet.getInstance(file.getModule(project =project) ?: return null) ?: return null
-                val renderer = DrawableRenderer(facet)
-                val size = Dimension(maxWidth * RENDERING_SCALING_FACTOR, maxHeight * RENDERING_SCALING_FACTOR)
-                try {
-                    val imageFuture: CompletableFuture<BufferedImage> = renderer.renderDrawable(xml, size)
-                    // TODO(http://b/143455172): Remove the timeout by removing usages of this method on the UI thread. For now we just ensure
-                    //  we do not block indefinitely on the UI thread. We also do not use the timeout in unit test to avoid non deterministic tests.
-                    //  On production, if the request times out, it will cause the icon on the gutter not to show which is an acceptable fallback
-                    //  until this is correctly fixed.
-                    //  250ms should be enough time for inflating and rendering and is used a upper boundary.
-                    //
-                    // When running in the background thread, we wait for the future to complete indefinitely. If this call happens within a
-                    // non-blocking read action, awaitWithCheckCanceled will allow write actions to cancel the wait. This avoids this thread
-                    // holding the lock and causing dead-locks.
-                    image = if (ApplicationManager.getApplication().isDispatchThread && !ApplicationManager.getApplication().isUnitTestMode)
-                            imageFuture[250, TimeUnit.MILLISECONDS]
-                    else ProgressIndicatorUtils.awaitWithCheckCanceled(imageFuture)
-                } catch (e: Throwable) {
-                    // If an invalid drawable is passed, renderDrawable might throw an exception. We can not fully control the input passed to this
-                    // rendering call since the user might be referencing an invalid drawable, so we are just less verbose about it. The user will
-                    // not see the preview next to the code when referencing invalid drawables.
-                    val message = String.format("Could not read/render icon image %1\$s", file.presentableUrl)
-                    if (ApplicationManager.getApplication().isUnitTestMode) {
-                        LOG.error(message, e)
-                    } else {
-                        LOG.debug(message, e)
-                    }
-                    image = null
-                } finally {
-                    Disposer.dispose(renderer)
-                }
-                if (image == null) {
-                    return null
-                }
-                image = ImageUtil.ensureHiDPI(image, ScaleContext.create())
-                image = ImageUtil.scaleImage(image, maxWidth, maxHeight)
-            }
+        } catch (e: Exception) {
+            // Not just IOExceptions here; for example, we've seen
+            //IllegalArgumentException @ ...... < PNGImageReader:1479 < ... ImageIO.read
 
-            return createImageIcon(image ?: return null)
-        } catch (e: Throwable) {
-            val message = String.format("Could not read/render icon image %1\$s", file.presentableUrl)
-            if (ApplicationManager.getApplication().isUnitTestMode) {
-                LOG.error(message, e)
-            } else {
-                LOG.warn(message, e)
-            }
+            LOG.error(String.format("Could not read svg image %1\$s", file.presentableUrl), e)
+            return null
         }
-
-        return null
     }
 
     private fun createBitmapIcon(file: VirtualFile, maxWidth: Int, maxHeight: Int): Icon? {

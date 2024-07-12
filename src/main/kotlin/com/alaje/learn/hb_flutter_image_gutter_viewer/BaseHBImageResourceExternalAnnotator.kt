@@ -2,6 +2,7 @@ package com.alaje.learn.hb_flutter_image_gutter_viewer
 
 import com.alaje.learn.hb_flutter_image_gutter_viewer.BaseHBImageResourceExternalAnnotator.FileAnnotationInfo
 import com.alaje.learn.hb_flutter_image_gutter_viewer.utils.GutterIconCache
+import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.daemon.LineMarkerSettings
@@ -22,6 +23,7 @@ import com.intellij.psi.PsiFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Base class for external annotators that place resource icons in the gutter of the editor.
@@ -32,6 +34,7 @@ abstract class BaseHBImageResourceExternalAnnotator
         Map<FileAnnotationInfo.AnnotatableElement, GutterIconRenderer>?>()
 {
     private val lineMarkerProvider = LineMarkerProvider()
+
 
     override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean): FileAnnotationInfo? {
         if (!LineMarkerSettings.getSettings().isEnabled(lineMarkerProvider)) {
@@ -84,12 +87,11 @@ abstract class BaseHBImageResourceExternalAnnotator
         annotationResult: Map<FileAnnotationInfo.AnnotatableElement, GutterIconRenderer>?,
         holder: AnnotationHolder
     ) {
-        annotationResult?.forEach { (k: FileAnnotationInfo.AnnotatableElement, v: GutterIconRenderer?) ->
-            // show image in gutter icon
-            holder.newSilentAnnotation(
-                HighlightSeverity.INFORMATION
-            ).range(k.textRange).gutterIconRenderer(v).create()
-        }
+        GutterIconCache.getInstance(file.project).renderIcon(annotationResult, holder)
+    }
+
+    override fun isDumbAware(): Boolean {
+        return true
     }
 
     class FileAnnotationInfo(

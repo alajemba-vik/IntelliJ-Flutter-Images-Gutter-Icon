@@ -1,16 +1,9 @@
 package com.alaje.learn.hb_flutter_image_gutter_viewer
 
-import com.alaje.learn.hb_flutter_image_gutter_viewer.HBGutterImageIconManager.addGutterMark
 import com.alaje.learn.hb_flutter_image_gutter_viewer.utils.isFlutterFile
 import com.intellij.openapi.editor.event.EditorFactoryEvent
 import com.intellij.openapi.editor.event.EditorFactoryListener
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiElementVisitor
-import com.jetbrains.lang.dart.psi.DartClass
-import com.jetbrains.lang.dart.psi.DartClassBody
-import com.jetbrains.lang.dart.psi.DartExpression
-import com.jetbrains.lang.dart.psi.DartFile
 
 
 class MyEditorFactoryListener : EditorFactoryListener {
@@ -31,7 +24,6 @@ class MyEditorFactoryListener : EditorFactoryListener {
                 if (!drawablesClassNameRegex.matches(virtualFile.name)) {
                     return
                 }
-
 
                 /*psiFile.accept(object : PsiElementVisitor() {
 

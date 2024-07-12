@@ -4,6 +4,7 @@ import com.intellij.ide.EssentialHighlightingMode.isEnabled
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.ui.Messages
+import com.intellij.platform.diagnostic.telemetry.EDT
 import com.intellij.psi.*
 import com.jetbrains.lang.dart.psi.DartClass
 import com.jetbrains.lang.dart.psi.DartClassBody
