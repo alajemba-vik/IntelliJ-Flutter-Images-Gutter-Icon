@@ -6,6 +6,9 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.ui.Messages
 import com.intellij.platform.diagnostic.telemetry.EDT
 import com.intellij.psi.*
+import com.intellij.psi.util.childLeafs
+import com.intellij.psi.util.elementType
+import com.jetbrains.lang.dart.DartTokenTypes
 import com.jetbrains.lang.dart.psi.DartClass
 import com.jetbrains.lang.dart.psi.DartClassBody
 import com.jetbrains.lang.dart.psi.DartExpression
@@ -89,4 +92,13 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
     }
 }
 
+
+val PsiElement.getAssignedString: String get() {
+    return childLeafs().firstOrNull{it.isStringAssigned}?.text ?: ""
+}
+
+
+private val PsiElement.isStringAssigned: Boolean get() {
+    return elementType == DartTokenTypes.REGULAR_STRING_PART
+}
 

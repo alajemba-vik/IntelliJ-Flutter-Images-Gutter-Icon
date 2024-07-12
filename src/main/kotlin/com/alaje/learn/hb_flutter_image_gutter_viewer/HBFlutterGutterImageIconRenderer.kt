@@ -7,12 +7,16 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.childLeafs
+import com.intellij.psi.util.elementType
 import com.intellij.ui.Gray
 import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.IconUtil.createImageIcon
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.jetbrains.lang.dart.DartTokenTypes
 import java.awt.Graphics
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -129,3 +133,4 @@ class HBFlutterGutterImageIconRenderer(private val path: String) : GutterIconRen
 
 private val MAX_WIDTH = JBUI.scale(16)
 private val MAX_HEIGHT = JBUI.scale(16)
+
