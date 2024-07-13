@@ -2,28 +2,20 @@ package com.alaje.learn.hb_flutter_image_gutter_viewer
 
 import com.alaje.learn.hb_flutter_image_gutter_viewer.BaseHBImageResourceExternalAnnotator.FileAnnotationInfo
 import com.alaje.learn.hb_flutter_image_gutter_viewer.utils.GutterIconCache
-import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.daemon.LineMarkerSettings
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
-import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Base class for external annotators that place resource icons in the gutter of the editor.
@@ -138,7 +130,7 @@ abstract class BaseHBImageResourceExternalAnnotator
             val resourceFile = LocalFileSystem.getInstance().findFileByPath(imagePath) ?: return null
             // Updating the GutterIconCache in the background thread to include the icon.
             GutterIconCache.getInstance(project).getIcon(resourceFile)
-            return GutterIconRenderer(resourceFile,project)
+            return HBFlutterGutterImageIconRenderer(resourceFile,project)
         }
 
     }

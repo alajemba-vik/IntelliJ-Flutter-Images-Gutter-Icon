@@ -1,28 +1,11 @@
 package com.alaje.learn.hb_flutter_image_gutter_viewer.utils
 
-/*
- * Copyright (C) 2013 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 import com.alaje.learn.hb_flutter_image_gutter_viewer.BaseHBImageResourceExternalAnnotator.FileAnnotationInfo
 import com.alaje.learn.hb_flutter_image_gutter_viewer.GutterIconFactory
 import com.google.common.collect.Maps
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.EDT
-import com.intellij.openapi.application.readAndWriteAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.markup.GutterIconRenderer
@@ -32,15 +15,17 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 import javax.swing.Icon
 import kotlin.properties.Delegates.observable
-import org.jetbrains.annotations.TestOnly
+
+
+private val MAX_WIDTH = JBUI.scale(16)
+private val MAX_HEIGHT = JBUI.scale(16)
 
 private fun defaultRenderIcon(
     file: VirtualFile,
-) = GutterIconFactory.createIcon(file, JBUI.scale(16), JBUI.scale(16))
+) = GutterIconFactory.createIcon(file, MAX_WIDTH, MAX_HEIGHT)
 
 @Service(Service.Level.PROJECT)
 class GutterIconCache
@@ -53,7 +38,7 @@ constructor(
     private var highDpiDisplay by
     observable(false) { _, oldValue, newValue -> if (oldValue != newValue) thumbnailCache.clear() }
 
-    constructor(project: Project, cs: CoroutineScope) : this(
+    constructor() : this(
         UIUtil::isRetina,
         {vf -> defaultRenderIcon(vf)}
     )
