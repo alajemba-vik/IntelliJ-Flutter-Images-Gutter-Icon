@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.kitfox.svg:svg-salamander:1.0")
+    implementation(files("libs/svgSalamander-1.1.4.jar"))
 }
 
 // Configure Gradle IntelliJ Plugin
