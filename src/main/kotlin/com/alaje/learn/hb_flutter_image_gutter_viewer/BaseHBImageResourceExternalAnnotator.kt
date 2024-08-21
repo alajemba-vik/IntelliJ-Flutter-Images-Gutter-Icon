@@ -43,11 +43,10 @@ abstract class BaseHBImageResourceExternalAnnotator
         val project = editor.project ?: return null
         val timestamp = collectedInfo.timestamp
         val document = editor.document
-        ///collectedInfo.file.virtualFile?.path ?: "" == Users/victoriachuksalajemba/Desktop/work/Hubtel/Flutter-Hubtel/feature_food/lib/ux/resources/food_drawables.dart
 
         val rendererMap: MutableMap<FileAnnotationInfo.AnnotatableElement, GutterIconRenderer> = HashMap()
 
-        for (element in (collectedInfo.elements ?: emptyList())) {
+        for (element in (collectedInfo.elements)) {
             ProgressManager.checkCanceled()
             if (editor.isDisposed || (document.modificationStamp) > timestamp) {
                 return null

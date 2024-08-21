@@ -13,7 +13,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import java.util.*
 import javax.swing.Icon
 
-val defaultIcon = AllIcons.General.Warning
+val defaultIcon = AllIcons.Ide.FatalError
 
 class HBFlutterGutterImageIconRenderer(
     file: VirtualFile?,
@@ -21,9 +21,7 @@ class HBFlutterGutterImageIconRenderer(
 ) : com.intellij.openapi.editor.markup.GutterIconRenderer(), DumbAware {
     private val myFile = file
     override fun getIcon(): Icon {
-        val icon = if (myFile != null
-        ) getInstance(project).getIcon(myFile)
-        else defaultIcon
+        val icon = if (myFile != null) getInstance(project).getIcon(myFile) else defaultIcon
         return icon ?: defaultIcon
     }
 
@@ -37,9 +35,7 @@ class HBFlutterGutterImageIconRenderer(
 
         val that = other as HBFlutterGutterImageIconRenderer
 
-        if (myFile != that.myFile) return false
-
-        return true
+        return myFile == that.myFile
     }
 
     override fun hashCode(): Int {
@@ -57,7 +53,6 @@ class HBFlutterGutterImageIconRenderer(
             openFileDescriptor.navigate(true)
         }
 
-        @get:VisibleForTesting
         override val navigationTarget: VirtualFile?
             get() {
                 if (!myNavigationTargetComputed && myFile != null) {
@@ -68,7 +63,6 @@ class HBFlutterGutterImageIconRenderer(
             }
     }
 
-    @VisibleForTesting
     interface NavigationTargetProvider {
         val navigationTarget: VirtualFile?
     }

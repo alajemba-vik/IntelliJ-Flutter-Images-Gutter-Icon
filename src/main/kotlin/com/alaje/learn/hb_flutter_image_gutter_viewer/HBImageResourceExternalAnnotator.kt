@@ -1,5 +1,6 @@
 package com.alaje.learn.hb_flutter_image_gutter_viewer
 
+import com.android.tools.build.jetifier.core.utils.Log
 import com.intellij.ide.EssentialHighlightingMode.isEnabled
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.editor.Editor
@@ -23,16 +24,10 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
     override fun collectInformation(file: PsiFile, editor: Editor, imagePath: String): FileAnnotationInfo? {
         if (isEnabled()) return null
         val annotationInfo = FileAnnotationInfo(file, editor)
-        /*file.accept(object : JavaRecursiveElementWalkingVisitor() {
-            override fun visitReferenceElement(element: PsiJavaCodeReferenceElement) {
-                annotationInfo.elements.add(FileAnnotationInfo.AnnotatableElement(element))
-            }
-        })
-*/
+
         file.accept(object : PsiElementVisitor() {
 
             override fun visitElement(element: PsiElement) {
-
 
                 if (element is DartFile) {
                     val classFile: DartClass? = element.children.firstOrNull {
@@ -62,7 +57,17 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
 
                         if (isBaseUrl) {
                             baseUrl = variableExpression?.getAssignedString ?: ""
+
+                            //Users/username/Development/Flutter-Hubtel/app/lib/ux/resources/app_drawables.dart
+                            //Users/username/Development/Flutter-Hubtel/base_feature_quick_commerce/lib/ux/resources/drawables.dart
+                            //Users/username/Development/Flutter-Hubtel/base_feature_quick_commerce/assets/drawable/animated_ongoing_order.gif
+                            // println("${editor.virtualFile?.path}");*/
+                            if (packageUrl.isBlank()) {
+                                packageUrl = "/app/";
+                            }
                         }
+
+
 
                         if (!isBaseUrl && !isPackageUrl) {
                             imageUrl = packageUrl + baseUrl + (variableExpression?.getAssignedString ?: "")

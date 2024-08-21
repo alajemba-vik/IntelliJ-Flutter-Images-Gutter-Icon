@@ -1,29 +1,30 @@
 package com.alaje.learn.hb_flutter_image_gutter_viewer
 
 
-import com.github.weisj.jsvg.nodes.SVG
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.Gray
+import com.intellij.ui.scale.Scale
 import com.intellij.ui.scale.ScaleContext
+import com.intellij.ui.scale.ScaleType
 import com.intellij.util.IconUtil
 import com.intellij.util.IconUtil.createImageIcon
 import com.intellij.util.ui.ImageUtil
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.kitfox.svg.SVGCache
+import com.kitfox.svg.animation.AnimationElement
 import com.kitfox.svg.app.beans.SVGIcon
-import java.awt.Component
-import java.awt.Dimension
+import com.kitfox.svg.xml.StyleAttribute
 import java.awt.image.BufferedImage
-import java.io.IOException
-import java.io.InputStream
 import java.net.URI
 import javax.imageio.ImageIO
 import javax.swing.Icon
 import kotlin.math.min
-import kotlin.math.sqrt
+
+
+private val SVG_MAX_SIZE = JBUI.scale(18)
+private val IMG_MAX_SIZE = JBUI.scale(18)
+private val GIF_MAX_SIZE = JBUI.scale(30)
 
 
 /**
@@ -45,22 +46,19 @@ internal object GutterIconFactory {
      */
     fun createIcon(
         file: VirtualFile,
-        maxWidth: Int,
-        maxHeight: Int
     ): Icon? {
         val path = file.path
         val icon: Icon? = if (path.endsWith(".svg")) {
-            createSvgIcon(file, maxWidth = maxWidth, maxHeight = maxHeight)
+            createSvgIcon(file, maxWidth = SVG_MAX_SIZE, maxHeight = SVG_MAX_SIZE)
         } else {
-            createBitmapIcon(file, maxWidth, maxHeight)
-        }
-
-        if (icon == null) {
-            println(String.format("Could not read icon image %1\$s", file.presentableUrl))
+            createBitmapIcon(
+                file,
+                if (path.endsWith(".gif")) GIF_MAX_SIZE else IMG_MAX_SIZE,
+                if (path.endsWith(".gif")) GIF_MAX_SIZE else IMG_MAX_SIZE
+            )
         }
         return  icon
     }
-
 
     private fun createSvgIcon(
        file: VirtualFile,
@@ -69,20 +67,54 @@ internal object GutterIconFactory {
     ): Icon? {
 
         try {
-
             val svgIcon = SVGIcon()
             svgIcon.svgURI = URI.create(file.url)
-            svgIcon.preferredSize = Dimension(maxWidth, maxHeight)
-            svgIcon.antiAlias = true
+
+
+            // TODO - set fill color to none when fill color is transparent
+            /*try {
+            val diagram = svgIcon.svgUniverse.getDiagram(svgIcon.svgURI)
+                val style = StyleAttribute()
+                style.setName("fill")
+                *//*
+                val m = mutableListOf<SVGElement>()
+                diagram.root.getChildren(m)
+                m.forEach {
+                    val attrs = it.presentationAttributes
+                }
+
+                m.first().presentationAttributes
+                diagram.root.getStyle(style)
+                *//*
+                val element = diagram.getElement("path");
+                element.getPres(style);
+
+                //val value = style.stringValue
+
+                val value = style.intList
+                println("name color: ${file.name}")
+                println("XXXFill color: $value")
+                *//*diagram.root.setAttribute(
+                    "fill", AnimationElement.AT_XML, "none"
+                )*//*
+            } catch (e: Exception) {
+                LOG.error("Could not set fill color", e)
+            }*/
+
+
             svgIcon.isClipToViewbox = true
+            svgIcon.antiAlias = true
 
-            val bufferedImage = IconUtil.toBufferedImage(svgIcon)
+            val scale = min(maxWidth / svgIcon.iconWidth.toDouble(), maxHeight / svgIcon.iconHeight.toDouble())
 
-            return createBitmapIcon(bufferedImage, maxWidth, maxHeight)
+            val icon = IconUtil.scale(
+                svgIcon,
+                ScaleContext.create(Scale(scale, ScaleType.OBJ_SCALE))
+            )
+
+            return icon
 
         } catch (e: Exception) {
-            // Not just IOExceptions here; for example, we've seen
-            //IllegalArgumentException @ ...... < PNGImageReader:1479 < ... ImageIO.read
 
             LOG.error(String.format("Could not read svg image %1\$s", file.presentableUrl), e)
             return null
@@ -90,16 +122,12 @@ internal object GutterIconFactory {
     }
 
     private fun createBitmapIcon(file: VirtualFile, maxWidth: Int, maxHeight: Int): Icon? {
-
         try {
             file.inputStream.use { stream ->
                 return createBitmapIcon(ImageIO.read(stream), maxWidth, maxHeight)
             }
         } catch (e: Exception) {
-            // Not just IOExceptions here; for example, we've seen
-            // IllegalArgumentException @ ...... < PNGImageReader:1479 < ... ImageIO.read
-
-            LOG.warn(String.format("Could not read icon image %1\$s", file.presentableUrl), e)
+            LOG.error(String.format("Could not read icon image %1\$s", file.presentableUrl), e)
             return null
         }
     }
@@ -132,19 +160,18 @@ internal object GutterIconFactory {
                     image = ImageUtil.toBufferedImage(image, false)
                     // The scale might have changed since the underlying BufferedImage obtained from the HiDPI image
                     // in the previous line might have different size.
-                    scale =
-                        min(maxWidth / image.getWidth(null).toDouble(), maxHeight / image.getHeight(null).toDouble())
+                    scale = min(
+                        maxWidth / image.getWidth(null).toDouble(),
+                        maxHeight / image.getHeight(null).toDouble()
+                    )
                     image = ImageUtil.scaleImage(image, scale)
                 }
             } else {
                 // If the image is smaller than the max size, simply use it as is instead of scaling down and then up.
                 image = bufferedImage
             }
-
-
             return createImageIcon(image)
         }
-
         return null
     }
 }

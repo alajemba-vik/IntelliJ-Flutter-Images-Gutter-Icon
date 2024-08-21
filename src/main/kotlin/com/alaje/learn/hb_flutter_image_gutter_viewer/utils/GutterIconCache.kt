@@ -14,18 +14,15 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.TestOnly
 import javax.swing.Icon
 import kotlin.properties.Delegates.observable
 
 
-private val MAX_WIDTH = JBUI.scale(16)
-private val MAX_HEIGHT = JBUI.scale(16)
 
 private fun defaultRenderIcon(
     file: VirtualFile,
-) = GutterIconFactory.createIcon(file, MAX_WIDTH, MAX_HEIGHT)
+) = GutterIconFactory.createIcon(file)
 
 @Service(Service.Level.PROJECT)
 class GutterIconCache
@@ -35,8 +32,9 @@ constructor(
     private val renderIcon: (VirtualFile) -> Icon?
 ) {
     private val thumbnailCache: MutableMap<String, TimestampedIcon> = Maps.newConcurrentMap()
-    private var highDpiDisplay by
-    observable(false) { _, oldValue, newValue -> if (oldValue != newValue) thumbnailCache.clear() }
+    private var highDpiDisplay by observable(false) { _, oldValue, newValue ->
+        if (oldValue != newValue) thumbnailCache.clear()
+    }
 
     constructor() : this(
         UIUtil::isRetina,
@@ -47,15 +45,17 @@ constructor(
      * Returns the potentially cached [Icon] rendered from the [file], or `null` if none could be
      * rendered.
      */
-    fun getIcon(file: VirtualFile): Icon? =
-        (getTimestampedIconFromCache(file) ?: renderAndCacheIcon(file)).icon
+    fun getIcon(file: VirtualFile): Icon? {
+        return (getTimestampedIconFromCache(file) ?: renderAndCacheIcon(file)).icon
+    }
 
     private fun renderAndCacheIcon(
         file: VirtualFile,
-    ): TimestampedIcon =
-        TimestampedIcon(renderIcon(file), file.modificationStamp).also {
+    ): TimestampedIcon {
+        return TimestampedIcon(renderIcon(file), file.modificationStamp).also {
             thumbnailCache[file.path] = it
         }
+    }
 
     /**
      * Returns the [Icon] for the associated [file] if it is already rendered and stored in the cache,
@@ -63,12 +63,15 @@ constructor(
      */
     private fun getTimestampedIconFromCache(file: VirtualFile): TimestampedIcon? {
         highDpiDisplay = highDpiSupplier()
-        return thumbnailCache[file.path]?.takeIf { it.isAsNewAs(file) }
+        val icon = thumbnailCache[file.path]?.takeIf { it.hasNotBeenModified(file) }
+
+        return icon
     }
 
     data class TimestampedIcon(val icon: Icon?, val timestamp: Long) {
-        fun isAsNewAs(file: VirtualFile) =
-            timestamp == file.modificationStamp && !FileDocumentManager.getInstance().isFileModified(file)
+        fun hasNotBeenModified(file: VirtualFile): Boolean {
+            return timestamp == file.modificationStamp && !FileDocumentManager.getInstance().isFileModified(file)
+        }
     }
 
     fun renderIcon(
