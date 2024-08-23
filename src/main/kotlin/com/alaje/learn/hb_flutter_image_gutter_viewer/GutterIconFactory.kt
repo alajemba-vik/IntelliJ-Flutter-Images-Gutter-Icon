@@ -4,17 +4,13 @@ package com.alaje.learn.hb_flutter_image_gutter_viewer
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.Gray
-import com.intellij.ui.scale.Scale
 import com.intellij.ui.scale.ScaleContext
-import com.intellij.ui.scale.ScaleType
 import com.intellij.util.IconUtil
 import com.intellij.util.IconUtil.createImageIcon
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.kitfox.svg.animation.AnimationElement
 import com.kitfox.svg.app.beans.SVGIcon
-import com.kitfox.svg.xml.StyleAttribute
 import java.awt.image.BufferedImage
 import java.net.URI
 import javax.imageio.ImageIO
@@ -107,9 +103,11 @@ internal object GutterIconFactory {
 
             val scale = min(maxWidth / svgIcon.iconWidth.toDouble(), maxHeight / svgIcon.iconHeight.toDouble())
 
+            // ScaleContext.create(Scale(scale, ScaleType.OBJ_SCALE))
             val icon = IconUtil.scale(
                 svgIcon,
-                ScaleContext.create(Scale(scale, ScaleType.OBJ_SCALE))
+                null,
+                scale.toFloat()
             )
 
             return icon
