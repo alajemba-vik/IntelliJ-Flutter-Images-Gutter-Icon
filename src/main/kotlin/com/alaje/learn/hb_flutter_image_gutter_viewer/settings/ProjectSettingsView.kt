@@ -1,15 +1,9 @@
 package com.alaje.learn.hb_flutter_image_gutter_viewer.settings
 
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.openapi.ui.setEmptyState
-import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.FormBuilder
-import java.awt.Graphics
-import java.awt.Graphics2D
-import javax.swing.JLabel
 import javax.swing.JPanel
 
 class ProjectSettingsView {

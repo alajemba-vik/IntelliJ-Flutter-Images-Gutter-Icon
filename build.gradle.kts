@@ -25,15 +25,15 @@ intellij {
         listOf(
             "com.intellij.java",
             "org.jetbrains.kotlin",
-            "Dart:241.15989.9",
-            //"org.jetbrains.android:241.15989.150"
+            "Dart:241.15989.9"
         )
     )
 }
 
 tasks {
     runIde {
-        // IDE Development Instance (the "Contents" directory is macOS specific):
+
+        // IDE Development Instance (the "Contents" directory is macOS specific, update the path to your IDE's directory):
         ideDir.set(file("/Applications/Android Studio.app/Contents"))
     }
 
