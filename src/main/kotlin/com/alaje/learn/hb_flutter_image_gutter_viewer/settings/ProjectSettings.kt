@@ -33,6 +33,7 @@ class ProjectSettings: PersistentStateComponent<ProjectSettings.ProjectState> {
     }
 
     class ProjectState: BaseState() {
+        /// This can be a regular string or a regex pattern
         var imagesFilePattern by string()
     }
 }

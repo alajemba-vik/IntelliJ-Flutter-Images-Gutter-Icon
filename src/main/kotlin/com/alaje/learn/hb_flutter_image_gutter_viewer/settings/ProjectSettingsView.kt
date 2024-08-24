@@ -18,9 +18,6 @@ class ProjectSettingsView {
         get() = imagesFilePatternTextField.text
 
     init {
-        /*imagesFilePatternTextField.emptyText.setText(
-            "Enter dart file pattern (e.g., *_images, *_drawables, *_assets, *_icons)"
-        )*/
         _mainPanel = FormBuilder.createFormBuilder()
             .addLabeledComponent(
                 "Images file pattern: ",
@@ -28,6 +25,7 @@ class ProjectSettingsView {
                 1,
                 true
             )
+            .addComponent(imagesFilePatternInfo())
             .addComponentFillVertically(JPanel(), 0)
             .panel
     }
@@ -39,6 +37,12 @@ class ProjectSettingsView {
 
 private fun imagesFilePatternInfo(): DialogPanel {
     return panel {
-
+        row {
+            comment(
+                """Enter dart file pattern 
+                    (e.g., *images, *drawables, *assets, *icons)
+                    """.trimIndent()
+            )
+        }
     }
 }

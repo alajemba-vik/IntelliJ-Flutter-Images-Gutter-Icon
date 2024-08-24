@@ -1,7 +1,10 @@
 package com.alaje.learn.hb_flutter_image_gutter_viewer
 
+import com.alaje.learn.hb_flutter_image_gutter_viewer.settings.ProjectSettings
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.ide.EssentialHighlightingMode.isEnabled
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
@@ -20,13 +23,19 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
         if (isEnabled()) return null
         val annotationInfo = FileAnnotationInfo(file, editor)
 
+        val projectSettings = ProjectSettings.getInstance(file.project);
+
+        val imagesFilePattern = projectSettings.state.imagesFilePattern ?: defaultFilePattern;
+        val imagesFilePatternRegex = Regex("(?i)$imagesFilePattern")
+
         file.accept(object : PsiElementVisitor() {
 
             override fun visitElement(element: PsiElement) {
 
-                if (element is DartFile) {
+                if (element is DartFile && element.name.contains(imagesFilePatternRegex)) {
+
                     val classFile: DartClass? = element.children.firstOrNull {
-                        it is DartClass && it.name?.contains("Drawables") == true
+                        it is DartClass && it.name?.contains(imagesFilePatternRegex) == true
                     } as? DartClass
 
                     val classBody: DartClassBody? = classFile?.children?.firstOrNull {
@@ -62,8 +71,6 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
                             }
                         }
 
-
-
                         if (!isBaseUrl && !isPackageUrl) {
                             imageUrl = packageUrl + baseUrl + (variableExpression?.getAssignedString ?: "")
 
@@ -90,6 +97,24 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
         }
         return annotationInfo
     }
+
+    companion object{
+        fun refreshProject(project: Project) {
+            DaemonCodeAnalyzer.getInstance(project).restart()
+            /*val editor = FileEditorManager.getInstance(project).selectedTextEditor ?: return
+            val file = FileDocumentManager.getInstance().getFile(editor.document) ?: return
+            val psiFile = PsiManager.getInstance(project).findFile(file) ?: return
+
+            val annotationInfo = collectInformation(psiFile, editor, "")
+            if (annotationInfo != null) {
+                apply(
+                    psiFile,
+                    annotationInfo,
+                    AnnotationHolder(project, editor)
+                )
+            }*/
+        }
+    }
 }
 
 
@@ -102,3 +127,5 @@ private val PsiElement.isStringAssigned: Boolean get() {
     return elementType == DartTokenTypes.REGULAR_STRING_PART
 }
 
+
+private val defaultFilePattern = "drawables"
