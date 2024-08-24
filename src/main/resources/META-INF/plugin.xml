@@ -29,6 +29,13 @@
     <extensions defaultExtensionNs="com.intellij">
         <externalAnnotator language="Dart" implementationClass="com.alaje.learn.hb_flutter_image_gutter_viewer.HBImageResourceExternalAnnotator"/>
 
+        <projectConfigurable
+                parentId="tools"
+                instance="com.alaje.learn.hb_flutter_image_gutter_viewer.settings.ProjectSettingsConfigurable"
+                id="com.alaje.learn.hb_flutter_image_gutter_viewer.settings.ProjectSettingsConfigurable"
+                displayName="Flutter Images Gutter Icon"
+                nonDefaultProject="true"/>
+
     </extensions>
 
 

@@ -25,9 +25,7 @@ private fun defaultRenderIcon(
 ) = GutterIconFactory.createIcon(file)
 
 @Service(Service.Level.PROJECT)
-class GutterIconCache
-@TestOnly
-constructor(
+class GutterIconCache(
     private val highDpiSupplier: () -> Boolean,
     private val renderIcon: (VirtualFile) -> Icon?
 ) {

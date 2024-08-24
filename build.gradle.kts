@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.alaje.learn"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 repositories {
     mavenCentral()
@@ -26,8 +26,7 @@ intellij {
             "com.intellij.java",
             "org.jetbrains.kotlin",
             "Dart:241.15989.9",
-            /*"io.flutter:80.0.2",*/
-            "org.jetbrains.android:241.15989.150"
+            //"org.jetbrains.android:241.15989.150"
         )
     )
 }

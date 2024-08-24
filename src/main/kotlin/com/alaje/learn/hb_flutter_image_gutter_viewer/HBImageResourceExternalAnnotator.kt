@@ -1,12 +1,10 @@
 package com.alaje.learn.hb_flutter_image_gutter_viewer
 
-import com.android.tools.build.jetifier.core.utils.Log
 import com.intellij.ide.EssentialHighlightingMode.isEnabled
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.ui.Messages
-import com.intellij.platform.diagnostic.telemetry.EDT
-import com.intellij.psi.*
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.PsiFile
 import com.intellij.psi.util.childLeafs
 import com.intellij.psi.util.elementType
 import com.jetbrains.lang.dart.DartTokenTypes
@@ -14,9 +12,6 @@ import com.jetbrains.lang.dart.psi.DartClass
 import com.jetbrains.lang.dart.psi.DartClassBody
 import com.jetbrains.lang.dart.psi.DartExpression
 import com.jetbrains.lang.dart.psi.DartFile
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 
 class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator(){
