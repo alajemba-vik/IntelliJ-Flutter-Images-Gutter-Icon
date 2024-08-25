@@ -65,7 +65,7 @@ You can quickly set this up in the run configuration of the IntelliJ IDEA:
 💡 You can easily find the path of the Android studio you are using to run your flutter project by running `flutter doctor -v`
 and checking out the information under the _Android toolchain - develop for Android devices_ section.
 
-## 🤝 How can I help?
+### 🙌🏾 Wrote some awesome code, have some suggestions or found an annoying bug 🐛?
 
 Feel free to send a [Pull Request](https://github.com/alajemba-vik/IntelliJ-Flutter-Gutter-Image-Viewer/pulls) or file a new [Issue](https://github.com/alajemba-vik/IntelliJ-Flutter-Gutter-Image-Viewer/issues)!
 
