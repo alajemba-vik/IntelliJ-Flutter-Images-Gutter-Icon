@@ -1,4 +1,4 @@
-package com.alaje.learn.flutter_images_gutter_icon
+package com.alaje.intellijplugins.flutter_images_gutter_icon
 
 
 import com.intellij.openapi.diagnostic.Logger

@@ -1,7 +1,7 @@
-package com.alaje.learn.flutter_images_gutter_icon
+package com.alaje.intellijplugins.flutter_images_gutter_icon
 
 
-import com.alaje.learn.flutter_images_gutter_icon.utils.GutterIconCache.Companion.getInstance
+import com.alaje.intellijplugins.flutter_images_gutter_icon.utils.GutterIconCache.Companion.getInstance
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction

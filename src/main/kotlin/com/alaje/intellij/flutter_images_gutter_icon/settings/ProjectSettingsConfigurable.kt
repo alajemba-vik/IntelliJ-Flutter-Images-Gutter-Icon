@@ -1,6 +1,6 @@
-package com.alaje.learn.flutter_images_gutter_icon.settings;
+package com.alaje.intellijplugins.flutter_images_gutter_icon.settings;
 
-import com.alaje.learn.flutter_images_gutter_icon.refreshAnnotators
+import com.alaje.intellijplugins.flutter_images_gutter_icon.refreshAnnotators
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 

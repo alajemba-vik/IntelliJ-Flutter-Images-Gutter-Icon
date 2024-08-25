@@ -1,4 +1,4 @@
-package com.alaje.learn.flutter_images_gutter_icon.utils
+package com.alaje.intellijplugins.flutter_images_gutter_icon.utils
 
 class Constants {
     companion object {

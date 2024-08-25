@@ -1,6 +1,6 @@
-package com.alaje.learn.flutter_images_gutter_icon.settings
+package com.alaje.intellijplugins.flutter_images_gutter_icon.settings
 
-import com.alaje.learn.flutter_images_gutter_icon.utils.Constants.Companion.REMOTE_SOURCE_CODE_README
+import com.alaje.intellijplugins.flutter_images_gutter_icon.utils.Constants.Companion.REMOTE_SOURCE_CODE_README
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.panel
