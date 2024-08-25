@@ -22,18 +22,14 @@ Once the plugin is installed, provide your file pattern in the settings for your
 1. Navigate to _Settings > Tools > Flutter Images Gutter Icon_
 2. Provide the image file patterns as needed
 3. Apply the settings and your project will be updated automatically 💃🏾
+   
+<br>
 
-***
-
-
-
-## 📜 What's new?
+## 🎉 What's new?
 
 Check out the [CHANGELOG](CHANGELOG.md).
 
-
-
-***
+<br>
 
 ## 🌟 Would really like to improve this plugin?
 
@@ -69,5 +65,5 @@ and checking out the information under the _Android toolchain - develop for Andr
 
 Feel free to send a [Pull Request](https://github.com/alajemba-vik/IntelliJ-Flutter-Gutter-Image-Viewer/pulls) or file a new [Issue](https://github.com/alajemba-vik/IntelliJ-Flutter-Gutter-Image-Viewer/issues)!
 
-## 📃 License
+### 📃 License
 This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
