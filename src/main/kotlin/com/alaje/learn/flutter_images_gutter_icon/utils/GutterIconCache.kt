@@ -1,8 +1,8 @@
-package com.alaje.learn.hb_flutter_image_gutter_viewer.utils
+package com.alaje.learn.flutter_images_gutter_icon.utils
 
 
-import com.alaje.learn.hb_flutter_image_gutter_viewer.BaseHBImageResourceExternalAnnotator.FileAnnotationInfo
-import com.alaje.learn.hb_flutter_image_gutter_viewer.GutterIconFactory
+import com.alaje.learn.flutter_images_gutter_icon.BaseHBImageResourceExternalAnnotator.FileAnnotationInfo
+import com.alaje.learn.flutter_images_gutter_icon.GutterIconFactory
 import com.google.common.collect.Maps
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.HighlightSeverity

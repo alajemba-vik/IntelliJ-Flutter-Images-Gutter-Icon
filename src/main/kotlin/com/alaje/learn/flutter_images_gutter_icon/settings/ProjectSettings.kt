@@ -1,4 +1,4 @@
-package com.alaje.learn.hb_flutter_image_gutter_viewer.settings
+package com.alaje.learn.flutter_images_gutter_icon.settings
 
 import com.intellij.openapi.components.*
 import com.intellij.openapi.project.Project
@@ -6,11 +6,11 @@ import com.intellij.openapi.project.Project
 
 @Service(Service.Level.PROJECT)
 @State(
-    name = "alaje.learn.hb_flutter_image_gutter_viewer.settings.ProjectSettings",
+    name = "alaje.learn.flutter_images_gutter_icon.settings.ProjectSettings",
     reloadable = false,
     storages = [
         Storage(
-            "hb_flutter_image_gutter_viewer.xml",
+            "flutter_images_gutter_icon.xml",
             roamingType = RoamingType.PER_OS
             )
     ]

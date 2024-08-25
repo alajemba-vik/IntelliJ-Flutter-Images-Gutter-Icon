@@ -1,7 +1,7 @@
-package com.alaje.learn.hb_flutter_image_gutter_viewer
+package com.alaje.learn.flutter_images_gutter_icon
 
-import com.alaje.learn.hb_flutter_image_gutter_viewer.BaseHBImageResourceExternalAnnotator.FileAnnotationInfo
-import com.alaje.learn.hb_flutter_image_gutter_viewer.utils.GutterIconCache
+import com.alaje.learn.flutter_images_gutter_icon.BaseHBImageResourceExternalAnnotator.FileAnnotationInfo
+import com.alaje.learn.flutter_images_gutter_icon.utils.GutterIconCache
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.daemon.LineMarkerSettings

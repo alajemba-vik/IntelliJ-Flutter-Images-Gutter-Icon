@@ -1,6 +1,6 @@
-package com.alaje.learn.hb_flutter_image_gutter_viewer
+package com.alaje.learn.flutter_images_gutter_icon
 
-import com.alaje.learn.hb_flutter_image_gutter_viewer.settings.ProjectSettings
+import com.alaje.learn.flutter_images_gutter_icon.settings.ProjectSettings
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.ide.EssentialHighlightingMode.isEnabled
 import com.intellij.openapi.editor.Editor
