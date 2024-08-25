@@ -1,5 +1,6 @@
 package com.alaje.learn.hb_flutter_image_gutter_viewer.settings
 
+import com.alaje.learn.hb_flutter_image_gutter_viewer.utils.Constants.Companion.REMOTE_SOURCE_CODE_README
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.panel
@@ -23,7 +24,7 @@ class ProjectSettingsView {
                 "Images file and class pattern: ",
                 imagesFilePatternTextField,
                 1,
-                true
+                false
             )
             .addComponent(imagesFilePatternInfo())
             .addComponentFillVertically(JPanel(), 0)
@@ -58,11 +59,7 @@ private fun imagesFilePatternInfo(): DialogPanel {
                 )
             }
             row {
-                comment(
-                    """
-                    Visit 
-                    """
-                )
+                comment("<icon src='AllIcons.General.Information'>&nbsp;See the <a href='${REMOTE_SOURCE_CODE_README}'>README</a> on Github for all information")
             }
         }
     }
