@@ -25,17 +25,18 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
 
         val projectSettings = ProjectSettings.getInstance(file.project);
 
-        val imagesFilePattern = projectSettings.state.imagesFilePattern ?: defaultFilePattern;
-        val imagesFilePatternRegex = Regex("(?i)$imagesFilePattern")
+        val imagesFilePattern = (projectSettings.state.imagesFilePattern ?: "").ifBlank { defaultFilePattern }
+
+        val imagesFilePatternsRegex = Regex("(?i)(${imagesFilePattern})")
 
         file.accept(object : PsiElementVisitor() {
 
             override fun visitElement(element: PsiElement) {
 
-                if (element is DartFile && element.name.contains(imagesFilePatternRegex)) {
+                if (element is DartFile && element.name.contains(imagesFilePatternsRegex)) {
 
                     val classFile: DartClass? = element.children.firstOrNull {
-                        it is DartClass && it.name?.contains(imagesFilePatternRegex) == true
+                        it is DartClass && it.name?.contains(imagesFilePatternsRegex) == true
                     } as? DartClass
 
                     val classBody: DartClassBody? = classFile?.children?.firstOrNull {
@@ -98,23 +99,6 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
         return annotationInfo
     }
 
-    companion object{
-        fun refreshProject(project: Project) {
-            DaemonCodeAnalyzer.getInstance(project).restart()
-            /*val editor = FileEditorManager.getInstance(project).selectedTextEditor ?: return
-            val file = FileDocumentManager.getInstance().getFile(editor.document) ?: return
-            val psiFile = PsiManager.getInstance(project).findFile(file) ?: return
-
-            val annotationInfo = collectInformation(psiFile, editor, "")
-            if (annotationInfo != null) {
-                apply(
-                    psiFile,
-                    annotationInfo,
-                    AnnotationHolder(project, editor)
-                )
-            }*/
-        }
-    }
 }
 
 
@@ -128,4 +112,8 @@ private val PsiElement.isStringAssigned: Boolean get() {
 }
 
 
-private val defaultFilePattern = "drawables"
+private const val defaultFilePattern = "drawables"
+
+fun refreshAnnotators(project: Project) {
+    DaemonCodeAnalyzer.getInstance(project).restart()
+}

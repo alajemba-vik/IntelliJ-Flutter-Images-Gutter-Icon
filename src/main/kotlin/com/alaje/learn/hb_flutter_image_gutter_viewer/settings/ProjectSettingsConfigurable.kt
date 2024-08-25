@@ -1,11 +1,8 @@
 package com.alaje.learn.hb_flutter_image_gutter_viewer.settings;
 
-import com.alaje.learn.hb_flutter_image_gutter_viewer.HBImageResourceExternalAnnotator
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.client.currentSession
+import com.alaje.learn.hb_flutter_image_gutter_viewer.refreshAnnotators
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages
 
 import javax.swing.*;
 
@@ -26,7 +23,7 @@ class ProjectSettingsConfigurable(private val project:Project): Configurable {
     override fun apply() {
         persistentState.imagesFilePattern = settingsView?.imagesFilePatternTextValue?.also{
             if (it != persistentState.imagesFilePattern) {
-                HBImageResourceExternalAnnotator.refreshProject(project)
+                refreshAnnotators(project)
             }
 
         }

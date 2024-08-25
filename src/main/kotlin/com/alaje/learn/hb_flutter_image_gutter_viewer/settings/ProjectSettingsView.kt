@@ -20,7 +20,7 @@ class ProjectSettingsView {
     init {
         _mainPanel = FormBuilder.createFormBuilder()
             .addLabeledComponent(
-                "Images file pattern: ",
+                "Images file and class pattern: ",
                 imagesFilePatternTextField,
                 1,
                 true
@@ -37,12 +37,33 @@ class ProjectSettingsView {
 
 private fun imagesFilePatternInfo(): DialogPanel {
     return panel {
-        row {
-            comment(
-                """Enter dart file pattern 
-                    (e.g., *images, *drawables, *assets, *icons)
-                    """.trimIndent()
-            )
+        rowsRange {
+            row {
+                comment(
+                    """
+                    Supported patterns include regular strings and regex patterns e.g., "images" or ".*_images".
+                    You can separate several patterns using a pipe e.g., "images|assets|.*_images".
+                    Exclude the quotes.
+                    """
+                )
+            }
+            row {
+                comment(
+                    """
+                    The value of this field is used to determine the name of the dart file and class 
+                    that contains references to the image resources. E.g., if the value is "images",
+                    the plugin will acknowledge any dart file that contains "images" and within that file any
+                    class whose name contains "images".
+                    """
+                )
+            }
+            row {
+                comment(
+                    """
+                    Visit 
+                    """
+                )
+            }
         }
     }
 }

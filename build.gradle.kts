@@ -34,7 +34,7 @@ tasks {
     runIde {
 
         // IDE Development Instance (the "Contents" directory is macOS specific, update the path to your IDE's directory):
-        ideDir.set(file("/Applications/Android Studio.app/Contents"))
+        ideDir.set(file(System.getenv("ANDROID_STUDIO_DIR")))
     }
 
     buildSearchableOptions {
