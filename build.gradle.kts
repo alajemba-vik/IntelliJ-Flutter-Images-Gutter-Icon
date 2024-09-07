@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.alaje.intellijplugins"
-version = "1.0"
+version = "1.1"
 
 repositories {
     mavenCentral()
@@ -31,8 +31,8 @@ intellij {
 }
 
 tasks {
+    // Optional setup to run on AS
     runIde {
-
         // IDE Development Instance (the "Contents" directory is macOS specific, update the path to your IDE's directory):
         ideDir.set(file(System.getenv("ANDROID_STUDIO_DIR")))
     }
@@ -54,7 +54,6 @@ tasks {
         sinceBuild.set("241")
         untilBuild.set("241.*")
     }
-
 
     signPlugin {
         certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
