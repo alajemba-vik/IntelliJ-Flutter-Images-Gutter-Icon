@@ -3,7 +3,6 @@ package com.alaje.intellijplugins.flutter_images_gutter_icon
 import com.alaje.intellijplugins.flutter_images_gutter_icon.settings.ProjectSettings
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.ide.EssentialHighlightingMode.isEnabled
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -15,6 +14,8 @@ import com.jetbrains.lang.dart.DartTokenTypes
 import com.jetbrains.lang.dart.psi.*
 import com.jetbrains.lang.dart.psi.impl.*
 import org.jetbrains.kotlin.psi.psiUtil.children
+import org.jetbrains.kotlin.util.prefixIfNot
+import java.io.File
 
 
 class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator(){
@@ -37,15 +38,13 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
                 if (element is DartFile && element.name.contains(imagesFilePatternsRegex)) {
                     val currentPackagePath = element.containingDirectory?.virtualFile?.path?.substringBefore("/lib/") ?: ""
 
-                    val imageBaseUrl = currentPackagePath.substringBefore("lib/")
-
                     for (entity in element.children) {
 
                         when {
                             entity.elementType == DartTokenTypes.VAR_DECLARATION_LIST -> {
                                 addAnnotationElementUsingVariable(
                                     entity as DartVarDeclarationList,
-                                    imageBaseUrl,
+                                    currentPackagePath,
                                     annotationInfo
                                 )
                             }
@@ -61,7 +60,7 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
                                         for (variable in varDeclarationList) {
                                             addAnnotationElementUsingVariable(
                                                 variable,
-                                                imageBaseUrl,
+                                                currentPackagePath,
                                                 annotationInfo
                                             )
                                         }
@@ -84,27 +83,33 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
 
     private fun addAnnotationElementUsingVariable(
         variable: DartVarDeclarationList,
-        imageBaseUrl: String,
+        currentPackagePath: String,
         annotationInfo: FileAnnotationInfo
     ) {
+        // To avoid adding non-file paths
+        if (PathUtil.getFileExtension(variable.text ?: "") == null) return
+
         val variableExpression: DartExpression? = variable.varInit?.expression
-        val variableValue = extractAllExpressionText(variableExpression)
+        var variableValue = extractAllExpressionText(variableExpression)
 
         if (variableValue.isNotBlank()) {
-            val fullImagePath = imageBaseUrl + variableValue
 
-            // To avoid adding non-file paths
-            if (PathUtil.getFileExtension(fullImagePath) != null) {
-
-                thisLogger().debug(fullImagePath)
-
-                annotationInfo.elements.add(
-                    FileAnnotationInfo.AnnotatableElement(
-                        fullImagePath,
-                        variable.textRange
-                    )
+            // Handle when the asset exists in a package
+            if (variableValue.startsWith("packages", ignoreCase = true)){
+                variableValue = variableValue.replaceFirst(
+                    Regex("packages${File.separator}[^${File.separator}]+"),
+                    ""
                 )
             }
+
+            val fullImagePath = currentPackagePath + variableValue.prefixIfNot(File.separator)
+
+            annotationInfo.elements.add(
+                FileAnnotationInfo.AnnotatableElement(
+                    fullImagePath,
+                    variable.textRange
+                )
+            )
         }
     }
 
