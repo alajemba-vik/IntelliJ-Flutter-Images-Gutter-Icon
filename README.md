@@ -67,3 +67,6 @@ Feel free to send a [Pull Request](https://github.com/alajemba-vik/IntelliJ-Flut
 
 ### 📃 License
 This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+### Final note
+This project would not be possible without the [Android Plugin for IntelliJ IDEA](https://github.com/JetBrains/android). Open source rocks🤘🏾!
