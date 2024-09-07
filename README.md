@@ -1,7 +1,7 @@
 # Flutter Images Gutter Icon 🎨
 
-[![Version](https://img.shields.io/jetbrains/plugin/v/25155.svg)](https://plugins.jetbrains.com/plugin/25155)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/25155.svg)](https://plugins.jetbrains.com/plugin/25155)
+[![Version](https://img.shields.io/jetbrains/plugin/v/25195.svg)](https://plugins.jetbrains.com/plugin/25195)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/25195.svg)](https://plugins.jetbrains.com/plugin/25195)
 
 <!-- Plugin description -->
 This IntelliJ plugin allows images from the assets folder to be visible in the gutter for Flutter projects.
@@ -67,3 +67,6 @@ Feel free to send a [Pull Request](https://github.com/alajemba-vik/IntelliJ-Flut
 
 ### 📃 License
 This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
+
+### Final note
+This project would not be possible without the [Android Plugin for IntelliJ IDEA](https://github.com/JetBrains/android). Open source rocks🤘🏾!
