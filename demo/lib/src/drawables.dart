@@ -1,8 +1,6 @@
 final class DemoDrawables {
   DemoDrawables._();
-
-  static const _packageUrl = "packages/demo";
-  static const _baseUrl = "$_packageUrl/assets/drawable";
-
-  static const testImage = "$_baseUrl/test_image.png";
+  static const testImage = "/assets/images/test_image2.png";
+  static const pluginIcon = "/assets/images/test_image.svg";
 }
+
