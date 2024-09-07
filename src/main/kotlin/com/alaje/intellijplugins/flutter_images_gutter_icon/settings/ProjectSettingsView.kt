@@ -21,7 +21,7 @@ class ProjectSettingsView {
     init {
         _mainPanel = FormBuilder.createFormBuilder()
             .addLabeledComponent(
-                "Images file and class pattern: ",
+                "Images file pattern: ",
                 imagesFilePatternTextField,
                 1,
                 false
@@ -51,10 +51,9 @@ private fun imagesFilePatternInfo(): DialogPanel {
             row {
                 comment(
                     """
-                    The value of this field is used to determine the name of the dart file and class 
-                    that contains references to the image resources. E.g., if the value is "images",
-                    the plugin will acknowledge any dart file that contains "images" and within that file any
-                    class whose name contains "images".
+                    The value of this field is used to determine the name of the dart file that 
+                    contains references to the image resources. E.g., if the value is "images",
+                    the plugin will acknowledge any dart file that contains "images".
                     """
                 )
             }
