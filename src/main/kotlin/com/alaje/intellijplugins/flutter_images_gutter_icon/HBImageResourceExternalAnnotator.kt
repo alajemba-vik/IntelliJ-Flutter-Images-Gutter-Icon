@@ -16,6 +16,7 @@ import com.jetbrains.lang.dart.psi.impl.*
 import org.jetbrains.kotlin.psi.psiUtil.children
 import org.jetbrains.kotlin.util.prefixIfNot
 import java.io.File
+import java.util.regex.PatternSyntaxException
 
 
 class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator(){
@@ -29,7 +30,13 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
 
         val imagesFilePattern = (projectSettings.state.imagesFilePattern ?: "").ifBlank { defaultFilePattern }
 
-        val imagesFilePatternsRegex = Regex("(?i)(${imagesFilePattern})")
+        val imagesFilePatternsRegex = try {
+            Regex("(?i)(${imagesFilePattern})")
+        } catch (e: PatternSyntaxException) {
+            // TODO: Inform user of invalid regex pattern
+            println("Invalid regex pattern: ${e.message}")
+            return null
+        }
 
         file.accept(object : PsiElementVisitor() {
 
