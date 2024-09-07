@@ -3,25 +3,26 @@ package com.alaje.intellijplugins.flutter_images_gutter_icon
 import com.alaje.intellijplugins.flutter_images_gutter_icon.settings.ProjectSettings
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.ide.EssentialHighlightingMode.isEnabled
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
-import com.intellij.psi.util.childLeafs
 import com.intellij.psi.util.elementType
+import com.intellij.util.PathUtil
 import com.jetbrains.lang.dart.DartTokenTypes
-import com.jetbrains.lang.dart.psi.DartClass
-import com.jetbrains.lang.dart.psi.DartClassBody
-import com.jetbrains.lang.dart.psi.DartExpression
-import com.jetbrains.lang.dart.psi.DartFile
+import com.jetbrains.lang.dart.psi.*
+import com.jetbrains.lang.dart.psi.impl.*
+import org.jetbrains.kotlin.psi.psiUtil.children
 
 
 class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator(){
 
     override fun collectInformation(file: PsiFile, editor: Editor, imagePath: String): FileAnnotationInfo? {
         if (isEnabled()) return null
-        val annotationInfo = FileAnnotationInfo(file, editor)
+
+        val annotationInfo = FileAnnotationInfo(editor)
 
         val projectSettings = ProjectSettings.getInstance(file.project);
 
@@ -34,57 +35,39 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
             override fun visitElement(element: PsiElement) {
 
                 if (element is DartFile && element.name.contains(imagesFilePatternsRegex)) {
+                    val currentPackagePath = element.containingDirectory?.virtualFile?.path?.substringBefore("/lib/") ?: ""
 
-                    val classFile: DartClass? = element.children.firstOrNull {
-                        it is DartClass && it.name?.contains(imagesFilePatternsRegex) == true
-                    } as? DartClass
+                    val imageBaseUrl = currentPackagePath.substringBefore("lib/")
 
-                    val classBody: DartClassBody? = classFile?.children?.firstOrNull {
-                        it is DartClassBody
-                    } as? DartClassBody
+                    for (entity in element.children) {
 
-                    var packageUrl = "";
-                    var baseUrl = ""
-
-                    for (variable in (classBody?.classMembers?.varDeclarationListList ?: emptyList())) {
-                        val nameOfVariable = variable.varAccessDeclaration.name
-                        val variableExpression: DartExpression? = variable.varInit?.expression
-
-                        val isPackageUrl = nameOfVariable == "_packageUrl"
-                        val isBaseUrl = nameOfVariable == "_baseUrl"
-
-                        var imageUrl: String
-
-                        if (isPackageUrl) {
-                            packageUrl = variableExpression?.getAssignedString ?: ""
-                            packageUrl = packageUrl.replace("packages", "")
-                        }
-
-                        if (isBaseUrl) {
-                            baseUrl = variableExpression?.getAssignedString ?: ""
-
-                            //Users/username/Development/Flutter-Hubtel/app/lib/ux/resources/app_drawables.dart
-                            //Users/username/Development/Flutter-Hubtel/base_feature_quick_commerce/lib/ux/resources/drawables.dart
-                            //Users/username/Development/Flutter-Hubtel/base_feature_quick_commerce/assets/drawable/animated_ongoing_order.gif
-                            // println("${editor.virtualFile?.path}");*/
-                            if (packageUrl.isBlank()) {
-                                packageUrl = "/app/";
-                            }
-                        }
-
-                        if (!isBaseUrl && !isPackageUrl) {
-                            imageUrl = packageUrl + baseUrl + (variableExpression?.getAssignedString ?: "")
-
-                            if (imageUrl.isNotBlank()) {
-
-                                imageUrl = editor.project?.basePath?.plus(imageUrl) ?: ""
-
-                                annotationInfo.elements.add(
-                                    FileAnnotationInfo.AnnotatableElement(
-                                        imageUrl,
-                                        variable.textRange
-                                    )
+                        when {
+                            entity.elementType == DartTokenTypes.VAR_DECLARATION_LIST -> {
+                                addAnnotationElementUsingVariable(
+                                    entity as DartVarDeclarationList,
+                                    imageBaseUrl,
+                                    annotationInfo
                                 )
+                            }
+
+                            entity is DartClass -> {
+                                for (classChild in entity.children) {
+
+                                    if (classChild is DartClassBody) {
+
+                                        val varDeclarationList =
+                                            classChild.classMembers?.varDeclarationListList ?: emptyList();
+
+                                        for (variable in varDeclarationList) {
+                                            addAnnotationElementUsingVariable(
+                                                variable,
+                                                imageBaseUrl,
+                                                annotationInfo
+                                            )
+                                        }
+                                    }
+                                }
+
                             }
                         }
 
@@ -99,18 +82,67 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
         return annotationInfo
     }
 
+    private fun addAnnotationElementUsingVariable(
+        variable: DartVarDeclarationList,
+        imageBaseUrl: String,
+        annotationInfo: FileAnnotationInfo
+    ) {
+        val variableExpression: DartExpression? = variable.varInit?.expression
+        val variableValue = extractAllExpressionText(variableExpression)
+
+        if (variableValue.isNotBlank()) {
+            val fullImagePath = imageBaseUrl + variableValue
+
+            // To avoid adding non-file paths
+            if (PathUtil.getFileExtension(fullImagePath) != null) {
+
+                thisLogger().debug(fullImagePath)
+
+                annotationInfo.elements.add(
+                    FileAnnotationInfo.AnnotatableElement(
+                        fullImagePath,
+                        variable.textRange
+                    )
+                )
+            }
+        }
+    }
+
+    private fun extractAllExpressionText(
+        variableExpression: DartExpression?,
+    ): String {
+        var variableValue  = ""
+        variableExpression?.node?.children()?.forEach {
+            when (it.elementType) {
+                DartTokenTypes.SHORT_TEMPLATE_ENTRY, DartTokenTypes.LONG_TEMPLATE_ENTRY -> {
+                    val templateExpression: DartExpression? =
+                        if (it.elementType == DartTokenTypes.SHORT_TEMPLATE_ENTRY) {
+                            (it.psi as? DartShortTemplateEntryImpl)?.expression
+                        } else {
+                            (it.psi as? DartLongTemplateEntryImpl)?.expression
+                        }
+
+                    val expressionRef = templateExpression as? DartReferenceExpressionImpl
+
+                    val expression: DartVarDeclarationListImpl? = expressionRef?.let { entry ->
+                        val resolvedTarget = entry.resolve()?.context as? DartVarAccessDeclarationImpl
+                        resolvedTarget?.context as? DartVarDeclarationListImpl
+                    }
+
+                    if (expression != null) {
+                        variableValue += extractAllExpressionText(expression.varInit?.expression)
+                    }
+                }
+
+                DartTokenTypes.REGULAR_STRING_PART -> {
+                    variableValue += it.text
+                }
+            }
+        }
+        return variableValue
+    }
+
 }
-
-
-val PsiElement.getAssignedString: String get() {
-    return childLeafs().firstOrNull{it.isStringAssigned}?.text ?: ""
-}
-
-
-private val PsiElement.isStringAssigned: Boolean get() {
-    return elementType == DartTokenTypes.REGULAR_STRING_PART
-}
-
 
 private const val defaultFilePattern = "drawables"
 

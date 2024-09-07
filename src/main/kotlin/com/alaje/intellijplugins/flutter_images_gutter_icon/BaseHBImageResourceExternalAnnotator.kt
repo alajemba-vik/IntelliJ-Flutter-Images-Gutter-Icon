@@ -10,6 +10,7 @@ import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
@@ -47,18 +48,14 @@ abstract class BaseHBImageResourceExternalAnnotator
         val rendererMap: MutableMap<FileAnnotationInfo.AnnotatableElement, GutterIconRenderer> = HashMap()
 
         for (element in (collectedInfo.elements)) {
-            ProgressManager.checkCanceled()
-            if (editor.isDisposed || (document.modificationStamp) > timestamp) {
-                return null
+            try {
+                ProgressManager.checkCanceled()
+            } catch (e: ProcessCanceledException) {
+                return  null
             }
 
-            if (LOG.isDebugEnabled) {
-                LOG.debug(
-                    String.format(
-                        "Rendering icon for %s in %s.",
-                        collectedInfo.file
-                    )
-                )
+            if (editor.isDisposed || (document.modificationStamp) > timestamp) {
+                return null
             }
 
             val gutterIconRenderer: GutterIconRenderer? = getResourceGutterIconRenderer(
@@ -86,7 +83,6 @@ abstract class BaseHBImageResourceExternalAnnotator
     }
 
     class FileAnnotationInfo(
-        val file: PsiFile,
         val editor: Editor,
     ) {
         val timestamp: Long = editor.document.modificationStamp
@@ -118,9 +114,6 @@ abstract class BaseHBImageResourceExternalAnnotator
     }
 
     companion object {
-        private val LOG = Logger.getInstance(
-            BaseHBImageResourceExternalAnnotator::class.java
-        )
 
         private fun getResourceGutterIconRenderer(
             project: Project,
