@@ -67,43 +67,13 @@ internal object GutterIconFactory {
             svgIcon.svgURI = URI.create(file.url)
 
 
-            // TODO - set fill color to none when fill color is transparent
-            /*try {
-            val diagram = svgIcon.svgUniverse.getDiagram(svgIcon.svgURI)
-                val style = StyleAttribute()
-                style.setName("fill")
-                *//*
-                val m = mutableListOf<SVGElement>()
-                diagram.root.getChildren(m)
-                m.forEach {
-                    val attrs = it.presentationAttributes
-                }
-
-                m.first().presentationAttributes
-                diagram.root.getStyle(style)
-                *//*
-                val element = diagram.getElement("path");
-                element.getPres(style);
-
-                //val value = style.stringValue
-
-                val value = style.intList
-                println("name color: ${file.name}")
-                println("XXXFill color: $value")
-                *//*diagram.root.setAttribute(
-                    "fill", AnimationElement.AT_XML, "none"
-                )*//*
-            } catch (e: Exception) {
-                LOG.error("Could not set fill color", e)
-            }*/
-
+            // TODO: Set fill color to none when fill color is transparent
 
             svgIcon.isClipToViewbox = true
             svgIcon.antiAlias = true
 
             val scale = min(maxWidth / svgIcon.iconWidth.toDouble(), maxHeight / svgIcon.iconHeight.toDouble())
 
-            // ScaleContext.create(Scale(scale, ScaleType.OBJ_SCALE))
             val icon = IconUtil.scale(
                 svgIcon,
                 null,
