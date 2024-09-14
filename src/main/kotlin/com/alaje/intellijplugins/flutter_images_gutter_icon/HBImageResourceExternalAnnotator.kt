@@ -93,9 +93,6 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
         currentPackagePath: String,
         annotationInfo: FileAnnotationInfo
     ) {
-        // To avoid adding non-file paths
-        if (PathUtil.getFileExtension(variable.text ?: "") == null) return
-
         val variableExpression: DartExpression? = variable.varInit?.expression
         var variableValue = extractAllExpressionText(variableExpression)
 
@@ -111,12 +108,16 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
 
             val fullImagePath = currentPackagePath + variableValue.prefixIfNot(File.separator)
 
-            annotationInfo.elements.add(
-                FileAnnotationInfo.AnnotatableElement(
-                    fullImagePath,
-                    variable.textRange
+            // To avoid adding non-file paths
+            if (PathUtil.getFileExtension(fullImagePath) != null) {
+
+                annotationInfo.elements.add(
+                    FileAnnotationInfo.AnnotatableElement(
+                        fullImagePath,
+                        variable.textRange
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -124,14 +125,14 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
         variableExpression: DartExpression?,
     ): String {
         var variableValue  = ""
-        variableExpression?.node?.children()?.forEach {
-            when (it.elementType) {
+        variableExpression?.node?.children()?.forEach { variableElement ->
+            when (variableElement.elementType) {
                 DartTokenTypes.SHORT_TEMPLATE_ENTRY, DartTokenTypes.LONG_TEMPLATE_ENTRY -> {
                     val templateExpression: DartExpression? =
-                        if (it.elementType == DartTokenTypes.SHORT_TEMPLATE_ENTRY) {
-                            (it.psi as? DartShortTemplateEntryImpl)?.expression
+                        if (variableElement.elementType == DartTokenTypes.SHORT_TEMPLATE_ENTRY) {
+                            (variableElement.psi as? DartShortTemplateEntryImpl)?.expression
                         } else {
-                            (it.psi as? DartLongTemplateEntryImpl)?.expression
+                            (variableElement.psi as? DartLongTemplateEntryImpl)?.expression
                         }
 
                     val expressionRef = templateExpression as? DartReferenceExpressionImpl
@@ -147,7 +148,14 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
                 }
 
                 DartTokenTypes.REGULAR_STRING_PART -> {
-                    variableValue += it.text
+                    variableValue += variableElement.text
+                }
+
+                DartTokenTypes.ARGUMENTS -> {
+                    variableValue += (variableElement.psi as DartArgumentsImpl).argumentList?.expressionList?.map { expressions ->
+                        val text = (expressions as DartStringLiteralExpressionImpl).text
+                        text.replace(singleAndDoubleQuotesRegex, "")
+                    }?.joinToString("") ?: ""
                 }
             }
         }
@@ -156,8 +164,10 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
 
 }
 
-private const val defaultFilePattern = "drawables"
-
 fun refreshAnnotators(project: Project) {
     DaemonCodeAnalyzer.getInstance(project).restart()
 }
+
+
+private const val defaultFilePattern = "drawables"
+private val singleAndDoubleQuotesRegex = Regex("""^['"]|['"]$""")
