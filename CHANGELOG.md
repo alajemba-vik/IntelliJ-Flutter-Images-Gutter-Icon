@@ -1,1 +1,2 @@
-<!-- Nothing of import here... for now. -->
+- Fixed crash with improper cast when parsing constructor arguments that are not valid `DartStringLiteralExpressionImpl`
+- Removed until-build property to allow plugin on all IDE versions
