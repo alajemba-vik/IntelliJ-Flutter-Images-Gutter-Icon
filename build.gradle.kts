@@ -32,10 +32,10 @@ intellij {
 
 tasks {
     // Optional setup to run on AS
-    runIde {
+    /*runIde {
         // IDE Development Instance (the "Contents" directory is macOS specific, update the path to your IDE's directory):
         ideDir.set(file(System.getenv("ANDROID_STUDIO_DIR")))
-    }
+    }*/
 
     buildSearchableOptions {
         enabled = false
@@ -52,8 +52,9 @@ tasks {
 
     patchPluginXml {
         sinceBuild.set("241")
-        untilBuild.set("242.*")
     }
+
+    provider {  null }
 
     signPlugin {
         certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
