@@ -152,10 +152,17 @@ class HBImageResourceExternalAnnotator :  BaseHBImageResourceExternalAnnotator()
                 }
 
                 DartTokenTypes.ARGUMENTS -> {
-                    variableValue += (variableElement.psi as DartArgumentsImpl).argumentList?.expressionList?.map { expressions ->
-                        val text = (expressions as DartStringLiteralExpressionImpl).text
-                        text.replace(singleAndDoubleQuotesRegex, "")
-                    }?.joinToString("") ?: ""
+                    variableValue += (variableElement.psi as DartArgumentsImpl).argumentList?.expressionList?.joinToString(
+                        ""
+                    ) { expression ->
+                        if (expression is DartStringLiteralExpressionImpl) {
+                            val text = (expression as? DartStringLiteralExpressionImpl)?.text
+                            text?.replace(singleAndDoubleQuotesRegex, "") ?: ""
+                        } else {
+                            extractAllExpressionText(expression)
+                        }
+
+                    } ?: ""
                 }
             }
         }
