@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.21"
-    id("org.jetbrains.intellij") version "1.16.1"
+    id("org.jetbrains.intellij.platform") version "2.2.1"
 }
 
 group = "com.alaje.intellijplugins"
@@ -9,36 +9,47 @@ version = "1.2.2"
 
 repositories {
     mavenCentral()
+    intellijPlatform{
+        defaultRepositories()
+    }
 }
 
 dependencies {
     implementation(files("libs/svgSalamander-1.1.4.jar"))
+    intellijPlatform {
+        create("IC", "2024.1.1")
+        plugins("Dart:241.15989.9")
+        bundledPlugins("com.intellij.java", "org.jetbrains.kotlin")
+    }
 }
 
-// Configure Gradle IntelliJ Plugin
-// Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
-intellij {
-    version.set("2024.1.1")
-    type.set("IC") // Target IDE Platform
+intellijPlatform {
+    buildSearchableOptions = false
 
-    plugins.set(
-        listOf(
-            "com.intellij.java",
-            "org.jetbrains.kotlin",
-            "Dart:241.15989.9"
-        )
-    )
+    pluginConfiguration {
+        ideaVersion {
+            sinceBuild = "241"
+        }
+
+        productDescriptor {
+            releaseVersion = "2024.1.1"
+        }
+    }
+    publishing {
+        token = System.getenv("PUBLISH_TOKEN")
+    }
+    signing {
+        certificateChain = System.getenv("CERTIFICATE_CHAIN")
+        privateKey = System.getenv("PRIVATE_KEY")
+        password = System.getenv("PRIVATE_KEY_PASSWORD")
+    }
 }
 
 tasks {
-    // Optional setup to run on AS
-    /*runIde {
-        // IDE Development Instance (the "Contents" directory is macOS specific, update the path to your IDE's directory):
-        ideDir.set(file(System.getenv("ANDROID_STUDIO_DIR")))
-    }*/
-
-    buildSearchableOptions {
-        enabled = false
+    verifyPluginProjectConfiguration {
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
+        kotlinJvmTarget = "17"
     }
 
     // Set the JVM compatibility versions
@@ -48,21 +59,5 @@ tasks {
     }
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "17"
-    }
-
-    patchPluginXml {
-        sinceBuild.set("241")
-    }
-
-    provider {  null }
-
-    signPlugin {
-        certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
-        privateKey.set(System.getenv("PRIVATE_KEY"))
-        password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
-    }
-
-    publishPlugin {
-        token.set(System.getenv("PUBLISH_TOKEN"))
     }
 }
