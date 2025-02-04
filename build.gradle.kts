@@ -1,3 +1,6 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.21"
@@ -5,7 +8,7 @@ plugins {
 }
 
 group = "com.alaje.intellijplugins"
-version = "1.2.3"
+version = "1.2.4"
 
 repositories {
     mavenCentral()
@@ -29,6 +32,7 @@ intellijPlatform {
     pluginConfiguration {
         ideaVersion {
             sinceBuild = "241"
+            untilBuild = provider { null }
         }
 
         productDescriptor {
@@ -46,12 +50,6 @@ intellijPlatform {
 }
 
 tasks {
-    verifyPluginProjectConfiguration {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
-        kotlinJvmTarget = "17"
-    }
-
     // Set the JVM compatibility versions
     withType<JavaCompile> {
         sourceCompatibility = "17"
