@@ -34,10 +34,8 @@ intellijPlatform {
             sinceBuild = "241"
             untilBuild = provider { null }
         }
-
-        productDescriptor {
-            releaseVersion = "2024.1.1"
-        }
+        val changeLogFile = Paths.get("CHANGELOG.md")
+        changeNotes = Files.readString(changeLogFile).trimIndent()
     }
     publishing {
         token = System.getenv("PUBLISH_TOKEN")

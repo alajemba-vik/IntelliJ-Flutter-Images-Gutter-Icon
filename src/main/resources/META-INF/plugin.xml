@@ -14,7 +14,7 @@
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-    Plugin for Flutter codebases to display images to be visible in the gutter.<br>
+    Plugin for Flutter codebases to display images in the gutter. Supports bitmap formats like png and jpeg, and vector file formats like svg.<br>
   ]]></description>
 
     <!-- Product and plugin compatibility requirements.
