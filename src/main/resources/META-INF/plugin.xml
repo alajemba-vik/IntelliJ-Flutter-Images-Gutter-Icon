@@ -26,6 +26,11 @@
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+
+    <extensions defaultExtensionNs="org.jetbrains.kotlin">
+        <supportsKotlinPluginMode supportsK2="true" />
+    </extensions>
+
     <extensions defaultExtensionNs="com.intellij">
         <externalAnnotator language="Dart" implementationClass="com.alaje.intellijplugins.flutter_images_gutter_icon.HBImageResourceExternalAnnotator"/>
 
@@ -35,7 +40,6 @@
                 id="com.alaje.intellijplugins.flutter_images_gutter_icon.settings.ProjectSettingsConfigurable"
                 displayName="Flutter Images Gutter Icon"
                 nonDefaultProject="true"/>
-
     </extensions>
 
 

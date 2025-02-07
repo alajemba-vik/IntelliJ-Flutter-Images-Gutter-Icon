@@ -74,7 +74,7 @@ class GutterIconCache(
         annotationResult: Map<FileAnnotationInfo.AnnotatableElement, GutterIconRenderer>?,
         holder: AnnotationHolder
     ) {
-        annotationResult?.forEach { (k: FileAnnotationInfo.AnnotatableElement, v: GutterIconRenderer?) ->
+        annotationResult?.forEach { (k: FileAnnotationInfo.AnnotatableElement, v: GutterIconRenderer) ->
             // show image in gutter icon
             holder.newSilentAnnotation(
                 HighlightSeverity.INFORMATION
