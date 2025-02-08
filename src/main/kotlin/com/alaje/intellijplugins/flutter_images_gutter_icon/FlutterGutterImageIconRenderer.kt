@@ -14,7 +14,7 @@ import javax.swing.Icon
 
 val defaultIcon = AllIcons.Ide.FatalError
 
-class HBFlutterGutterImageIconRenderer(
+class FlutterGutterImageIconRenderer(
     file: VirtualFile?,
     private val project: Project
 ) : com.intellij.openapi.editor.markup.GutterIconRenderer(), DumbAware {
@@ -32,7 +32,7 @@ class HBFlutterGutterImageIconRenderer(
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
 
-        val that = other as HBFlutterGutterImageIconRenderer
+        val that = other as FlutterGutterImageIconRenderer
 
         return myFile == that.myFile
     }

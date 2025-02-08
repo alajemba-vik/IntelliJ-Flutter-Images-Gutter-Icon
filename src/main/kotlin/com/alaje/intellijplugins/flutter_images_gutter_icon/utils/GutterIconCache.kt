@@ -1,8 +1,8 @@
 package com.alaje.intellijplugins.flutter_images_gutter_icon.utils
 
 
-import com.alaje.intellijplugins.flutter_images_gutter_icon.BaseHBImageResourceExternalAnnotator.FileAnnotationInfo
 import com.alaje.intellijplugins.flutter_images_gutter_icon.GutterIconFactory
+import com.alaje.intellijplugins.flutter_images_gutter_icon.ImageIconAnnotationInfo
 import com.google.common.collect.Maps
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.HighlightSeverity
@@ -15,7 +15,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.UIUtil
 import javax.swing.Icon
 import kotlin.properties.Delegates.observable
-
 
 
 private fun defaultRenderIcon(
@@ -71,10 +70,10 @@ class GutterIconCache(
     }
 
     fun renderIcon(
-        annotationResult: Map<FileAnnotationInfo.AnnotatableElement, GutterIconRenderer>?,
+        annotationResult: Map<ImageIconAnnotationInfo.AnnotatableElement, GutterIconRenderer>?,
         holder: AnnotationHolder
     ) {
-        annotationResult?.forEach { (k: FileAnnotationInfo.AnnotatableElement, v: GutterIconRenderer) ->
+        annotationResult?.forEach { (k: ImageIconAnnotationInfo.AnnotatableElement, v: GutterIconRenderer) ->
             // show image in gutter icon
             holder.newSilentAnnotation(
                 HighlightSeverity.INFORMATION

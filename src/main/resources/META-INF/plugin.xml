@@ -32,7 +32,7 @@
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
-        <externalAnnotator language="Dart" implementationClass="com.alaje.intellijplugins.flutter_images_gutter_icon.HBImageResourceExternalAnnotator"/>
+        <externalAnnotator language="Dart" implementationClass="com.alaje.intellijplugins.flutter_images_gutter_icon.ImageResourceExternalAnnotator"/>
 
         <projectConfigurable
                 parentId="tools"
