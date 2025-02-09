@@ -1,6 +1,5 @@
 package com.alaje.intellijplugins.flutter_images_gutter_icon
 
-import com.alaje.intellijplugins.flutter_images_gutter_icon.settings.ProjectSettings
 import com.alaje.intellijplugins.flutter_images_gutter_icon.utils.GutterIconCache
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.codeInsight.daemon.LineMarkerInfo
@@ -14,25 +13,26 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.elementType
-import com.intellij.util.PathUtil
-import com.jetbrains.lang.dart.DartTokenTypes
+import com.jetbrains.lang.dart.DartTokenTypes.*
 import com.jetbrains.lang.dart.psi.*
-import com.jetbrains.lang.dart.psi.impl.*
-import org.jetbrains.kotlin.psi.psiUtil.children
+import com.jetbrains.lang.dart.psi.impl.DartLongTemplateEntryImpl
+import com.jetbrains.lang.dart.psi.impl.DartShortTemplateEntryImpl
+import com.jetbrains.lang.dart.psi.impl.DartVarDeclarationListImpl
+import org.jetbrains.kotlin.psi.psiUtil.PsiChildRange
+import org.jetbrains.kotlin.psi.psiUtil.allChildren
 import org.jetbrains.kotlin.util.prefixIfNot
 import java.io.File
-import java.util.regex.PatternSyntaxException
 
 
-class ImageResourceExternalAnnotator  : ExternalAnnotator<
+class ImageResourceExternalAnnotator : ExternalAnnotator<
         ImageIconAnnotationInfo?,
         Map<ImageIconAnnotationInfo.AnnotatableElement, GutterIconRenderer>?
-        >(){
+        >() {
 
     private val lineMarkerProvider = LineMarkerProvider()
 
@@ -46,62 +46,54 @@ class ImageResourceExternalAnnotator  : ExternalAnnotator<
 
         val annotationInfo = ImageIconAnnotationInfo(editor)
 
-        val projectSettings = ProjectSettings.getInstance(file.project);
+        val currentPackagePath = file.virtualFile.path.substringBefore("/lib/")
 
-        val imagesFilePattern = (projectSettings.state.imagesFilePattern ?: "").ifBlank { defaultFilePattern }
+        file.accept(object : DartRecursiveVisitor() {
+            override fun visitReferenceExpression(expression: DartReferenceExpression) {
 
-        val imagesFilePatternsRegex = try {
-            Regex("(?i)(${imagesFilePattern})")
-        } catch (e: PatternSyntaxException) {
-            // TODO: Inform user of invalid regex pattern
-            println("Invalid regex pattern: ${e.message}")
-            return null
-        }
+                // Skip processing if the reference expression is part of a larger expression context.
+                // This ensures that nested references, such as "AppDrawables.unifiedSearchEmptyState",
+                // are not processed multiple times. For instance, "AppDrawables" and "unifiedSearchEmptyState"
+                // would be visited and processed independently if not for this check.
+                // So in this case, we'll only process the expression if the context is the same as the text.
+                if (expression.context?.text != expression.text) return
 
-        file.accept(object : PsiElementVisitor() {
+                val resolvedReference = expression.reference?.resolve()?.context
 
-            override fun visitElement(element: PsiElement) {
+                if (resolvedReference is DartVarAccessDeclaration) {
+                    val varDeclarationText = extractTextFromVarDeclaration(resolvedReference)
 
-                if (element is DartFile && element.name.contains(imagesFilePatternsRegex)) {
-                    val currentPackagePath = element.containingDirectory?.virtualFile?.path?.substringBefore("/lib/") ?: ""
+                    if (!varDeclarationText.isNullOrBlank()) {
 
-                    for (entity in element.children) {
+                        if (!varDeclarationText.hasImageFileExtension()) return
 
-                        when {
-                            entity.elementType == DartTokenTypes.VAR_DECLARATION_LIST -> {
-                                addAnnotationElementUsingVariable(
-                                    entity as DartVarDeclarationList,
-                                    currentPackagePath,
-                                    annotationInfo
-                                )
-                            }
-
-                            entity is DartClass -> {
-                                for (classChild in entity.children) {
-
-                                    if (classChild is DartClassBody) {
-
-                                        val varDeclarationList =
-                                            classChild.classMembers?.varDeclarationListList ?: emptyList();
-
-                                        for (variable in varDeclarationList) {
-                                            addAnnotationElementUsingVariable(
-                                                variable,
-                                                currentPackagePath,
-                                                annotationInfo
-                                            )
-                                        }
-                                    }
-                                }
-
-                            }
-                        }
-
+                        addAnnotationElementUsingText(
+                            text = varDeclarationText,
+                            currentPackagePath = currentPackagePath,
+                            annotationInfo = annotationInfo,
+                            textRange = expression.textRange
+                        )
                     }
                 }
-                super.visitElement(element)
+
+                super.visitReferenceExpression(expression)
+            }
+
+            override fun visitStringLiteralExpression(o: DartStringLiteralExpression) {
+                if (!o.text.hasImageFileExtension()) return
+
+                val finalText = extractTextFromExpression(o.allChildren)
+
+                addAnnotationElementUsingText(
+                    text = finalText,
+                    currentPackagePath = currentPackagePath,
+                    annotationInfo = annotationInfo,
+                    textRange = o.textRange
+                )
+                super.visitStringLiteralExpression(o)
             }
         })
+
         if (annotationInfo.elements.isEmpty()) {
             return null
         }
@@ -123,7 +115,7 @@ class ImageResourceExternalAnnotator  : ExternalAnnotator<
             try {
                 ProgressManager.checkCanceled()
             } catch (e: ProcessCanceledException) {
-                return  null
+                return null
             }
 
             if (editor.isDisposed || (document.modificationStamp) > timestamp) {
@@ -151,90 +143,108 @@ class ImageResourceExternalAnnotator  : ExternalAnnotator<
     }
 
     // Determines if compatible in Dumb mode (during indexing)
-    override fun isDumbAware(): Boolean {
-        return true
+    override fun isDumbAware(): Boolean = true
+
+    private fun extractTextFromExpression(allChildren: PsiChildRange): String {
+        var expressionText = ""
+
+        allChildren.forEach { psiElement ->
+            when (psiElement.elementType) {
+                SHORT_TEMPLATE_ENTRY, LONG_TEMPLATE_ENTRY -> {
+                    val text = extractTextFromTemplateEntry(psiElement as DartPsiCompositeElement)
+                    if (!text.isNullOrBlank()) {
+                        expressionText += text
+                    }
+                }
+
+                REGULAR_STRING_PART -> expressionText += psiElement.text
+
+                else -> expressionText += ""
+            }
+        }
+        return expressionText
     }
 
-    private fun addAnnotationElementUsingVariable(
-        variable: DartVarDeclarationList,
+    private fun addAnnotationElementUsingText(
+        text: String,
         currentPackagePath: String,
-        annotationInfo: ImageIconAnnotationInfo
+        annotationInfo: ImageIconAnnotationInfo,
+        textRange: TextRange
     ) {
-        val variableExpression: DartExpression? = variable.varInit?.expression
-        var variableValue = extractAllExpressionText(variableExpression)
+        var stringLiteral = text
 
-        if (variableValue.isNotBlank()) {
+        if (stringLiteral.isNotBlank()) {
 
             // Handle when the asset exists in a package
-            if (variableValue.startsWith("packages", ignoreCase = true)){
-                variableValue = variableValue.replaceFirst(
+            if (stringLiteral.startsWith("packages", ignoreCase = true)) {
+                stringLiteral = stringLiteral.replaceFirst(
                     Regex("packages${File.separator}[^${File.separator}]+"),
                     ""
                 )
             }
 
-            val fullImagePath = currentPackagePath + variableValue.prefixIfNot(File.separator)
+            /// Eg: Users/alajemba/Desktop/HubtelWork/Flutter-Hubtel/app/$_baseUrl/ic_notifications.svg
+            val fullImagePath = currentPackagePath + stringLiteral.prefixIfNot(File.separator)
 
-            // To avoid adding non-file paths
-            if (PathUtil.getFileExtension(fullImagePath) != null) {
-
-                annotationInfo.elements.add(
-                    ImageIconAnnotationInfo.AnnotatableElement(
-                        fullImagePath,
-                        variable.textRange
-                    )
+            annotationInfo.elements.add(
+                ImageIconAnnotationInfo.AnnotatableElement(
+                    fullImagePath,
+                    textRange
                 )
-            }
+            )
         }
     }
 
-    private fun extractAllExpressionText(
-        variableExpression: DartExpression?,
-    ): String {
-        var variableValue  = ""
-        variableExpression?.node?.children()?.forEach { variableElement ->
-            when (variableElement.elementType) {
-                DartTokenTypes.SHORT_TEMPLATE_ENTRY, DartTokenTypes.LONG_TEMPLATE_ENTRY -> {
-                    val templateExpression: DartExpression? =
-                        if (variableElement.elementType == DartTokenTypes.SHORT_TEMPLATE_ENTRY) {
-                            (variableElement.psi as? DartShortTemplateEntryImpl)?.expression
-                        } else {
-                            (variableElement.psi as? DartLongTemplateEntryImpl)?.expression
+    private fun extractTextFromTemplateEntry(templateEntry: DartPsiCompositeElement): String? {
+        val templateEntryContainingFile = templateEntry.containingFile
+
+        val expression: DartExpression? = when (templateEntry) {
+            is DartShortTemplateEntryImpl -> templateEntry.expression
+
+            is DartLongTemplateEntryImpl -> templateEntry.expression
+
+            else -> return null
+        }
+
+        when (val resolvedReference = expression?.reference?.resolve()?.context) {
+            is DartVarAccessDeclaration -> {
+                return extractTextFromVarDeclaration(resolvedReference)
+            }
+
+            null -> {
+                var variableExpression: DartExpression? = null
+
+                templateEntryContainingFile.accept(
+                    object : DartRecursiveVisitor() {
+                        override fun visitVarDeclarationList(declarationList: DartVarDeclarationList) {
+                            if (declarationList.varAccessDeclaration.text.contains(expression?.text ?: "")) {
+                                variableExpression = declarationList.varInit?.expression
+                            }
+
+                            super.visitVarDeclarationList(declarationList)
                         }
-
-                    val expressionRef = templateExpression as? DartReferenceExpressionImpl
-
-                    val expression: DartVarDeclarationListImpl? = expressionRef?.let { entry ->
-                        val resolvedTarget = entry.resolve()?.context as? DartVarAccessDeclarationImpl
-                        resolvedTarget?.context as? DartVarDeclarationListImpl
                     }
+                )
 
-                    if (expression != null) {
-                        variableValue += extractAllExpressionText(expression.varInit?.expression)
-                    }
-                }
+                return extractTextFromExpression(variableExpression?.allChildren ?: return null)
 
-                DartTokenTypes.REGULAR_STRING_PART -> {
-                    variableValue += variableElement.text
-                }
-
-                DartTokenTypes.ARGUMENTS -> {
-                    variableValue += (variableElement.psi as DartArgumentsImpl).argumentList?.expressionList?.joinToString(
-                        ""
-                    ) { expression ->
-                        if (expression is DartStringLiteralExpressionImpl) {
-                            val text = (expression as? DartStringLiteralExpressionImpl)?.text
-                            text?.replace(singleAndDoubleQuotesRegex, "") ?: ""
-                        } else {
-                            extractAllExpressionText(expression)
-                        }
-
-                    } ?: ""
-                }
             }
         }
-        return variableValue
+
+        return null
     }
+
+    private fun extractTextFromVarDeclaration(resolvedReference: DartVarAccessDeclaration): String? {
+        val varDeclarationList = resolvedReference.context as? DartVarDeclarationListImpl
+
+        if (varDeclarationList != null) {
+            val variableExpression: DartExpression? = varDeclarationList.varInit?.expression
+            return extractTextFromExpression(variableExpression?.allChildren ?: return null)
+        }
+
+        return null
+    }
+
 
     private fun getResourceGutterIconRenderer(
         project: Project,
@@ -246,22 +256,18 @@ class ImageResourceExternalAnnotator  : ExternalAnnotator<
         return FlutterGutterImageIconRenderer(resourceFile, project)
     }
 
+
     /**
      * Provider used to enable/disable Android resource gutter icons.
-     *
      *
      * This provider doesn't directly provide any of the resource gutter icons; that's done by
      * [ImageResourceExternalAnnotator]. But since those are [ExternalAnnotator]s, they don't show up in Gutter icon
      * settings. This provider does show up in settings, and the other annotators check its value to determine if they should be enabled.
      */
     class LineMarkerProvider : LineMarkerProviderDescriptor() {
-        override fun getName(): String {
-            return "Flutter image resource preview"
-        }
+        override fun getName(): String = "Flutter image resource preview"
 
-        override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
-            return null
-        }
+        override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
     }
 
 }
@@ -271,6 +277,7 @@ fun refreshAnnotators(project: Project) {
     DaemonCodeAnalyzer.getInstance(project).restart()
 }
 
+private fun String.hasImageFileExtension(): Boolean {
+    return contains(Regex(".*\\.(png|jpg|jpeg|gif|bmp|wbmp|webp|svg)"))
+}
 
-private const val defaultFilePattern = "drawables"
-private val singleAndDoubleQuotesRegex = Regex("""^['"]|['"]$""")
