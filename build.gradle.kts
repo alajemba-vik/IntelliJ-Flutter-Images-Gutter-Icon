@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.alaje.intellijplugins"
-version = "1.2.5"
+version = "1.3"
 
 repositories {
     mavenCentral()
