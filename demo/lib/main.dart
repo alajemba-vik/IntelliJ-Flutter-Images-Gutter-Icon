@@ -1,5 +1,6 @@
 //Flutter app with a screen for settings
 import 'package:demo/src/drawables.dart';
+import 'package:demo/src/images.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -11,23 +12,12 @@ void main() {
         useMaterial3: true,
       ),
       home: Scaffold(
-        appBar: AppBar(
-            title: Row(
-              children: <Widget>[
-                SvgPicture.asset(
-                    "assets/images/test_image.svg",
-                  width: 50,
-                  height: 50,
-                ),
-                Image.asset(
-                    "assets/images/test_image2.png", width: 50, height: 50,
-                ),
-                SizedBox(width: 8),
-                Text('Settings'),
-              ],
-            )
+        body: Column(
+          children: [
+            SizedBox(height: 100,),
+            SettingsScreen(),
+          ],
         ),
-        body: SettingsScreen(),
       ),
     ),
   );
@@ -40,9 +30,16 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      shrinkWrap: true,
       children: <Widget>[
+        Row(
+          children: <Widget>[
+            SizedBox(width: 8),
+            Text('Settings'),
+          ],
+        ),
         ListTile(
-          leading: Icon(Icons.wifi),
+          leading: Image.asset("assets/images/test_image2.png"),
           title: Text('Wi-Fi'),
           subtitle: Text('Connect to networks'),
           trailing: Switch(
@@ -51,7 +48,7 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
         ListTile(
-          leading: Icon(Icons.bluetooth),
+          leading: Image.asset(DemoDrawables.testImage),
           title: Text('Bluetooth'),
           subtitle: Text('Connect to devices'),
           trailing: Switch(
@@ -60,7 +57,16 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
         ListTile(
-          leading: Icon(Icons.data_usage),
+          leading: SvgPicture.asset(DemoDrawables.pluginIcon),
+          title: Text('Wi-Fi'),
+          subtitle: Text('Connect to devices'),
+          trailing: Switch(
+            value: false,
+            onChanged: (bool value) {},
+          ),
+        ),
+        ListTile(
+          leading: Image.asset(FirstDemoImages.testImage),
           title: Text('Data usage'),
           subtitle: Text('View data usage'),
           trailing: Icon(Icons.arrow_forward),

@@ -245,7 +245,6 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
         return null
     }
 
-
     private fun getResourceGutterIconRenderer(
         project: Project,
         imagePath: String,
