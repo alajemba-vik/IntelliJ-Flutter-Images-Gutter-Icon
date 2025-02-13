@@ -8,6 +8,23 @@ This IntelliJ plugin allows images from the assets folder to be visible in the g
 It supports bitmap formats like **png** and **jpeg** and vector file formats like **svg**.
 <!-- Plugin description end -->
 
+## 🏗️️ Architecture
+
+**ImageResourceExternalAnnotator:**
+- Custom class that extends IntelliJ's `ExternalAnnotator` to annotate parts of the code as references to image files, thereby allowing the plugin to display their gutter icons.
+- Communicates with `GutterIconRenderer`.
+
+**GutterIconRenderer:**
+- Custom class that extends IntelliJ's `GutterIconRenderer` to represent an icon in the gutter with its navigation actions.
+- Communicates with `GutterIconCache`.
+
+**GutterIconCache:**
+- Creates new icons and caches them for reuse.
+- Communicates with `GutterIconUtils`.
+
+**GutterIconUtils:**
+- Utilities wrapper that handles creating instances of `Icon` from different image formats.
+
 ## 🚀 How to install?
 
 You can install the plugin directly from Android Studio:
