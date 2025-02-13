@@ -1,6 +1,5 @@
 package com.alaje.intellijplugins.flutter_images_gutter_icon
 
-import com.alaje.intellijplugins.flutter_images_gutter_icon.utils.GutterIconCache
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
@@ -8,6 +7,7 @@ import com.intellij.codeInsight.daemon.LineMarkerSettings
 import com.intellij.ide.EssentialHighlightingMode.isEnabled
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -35,6 +35,7 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
         >() {
 
     private val lineMarkerProvider = LineMarkerProvider()
+    private lateinit var project: Project
 
     // Collects information about the file to be annotated
     override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean): ImageIconAnnotationInfo? {
@@ -43,6 +44,8 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
         }
 
         if (isEnabled()) return null
+
+        project = editor.project ?: return null
 
         val annotationInfo = ImageIconAnnotationInfo(editor)
 
@@ -79,18 +82,18 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
                 super.visitReferenceExpression(expression)
             }
 
-            override fun visitStringLiteralExpression(o: DartStringLiteralExpression) {
-                if (!o.text.hasImageFileExtension()) return
+            override fun visitStringLiteralExpression(stringLiteralExpression: DartStringLiteralExpression) {
+                if (!stringLiteralExpression.text.hasImageFileExtension()) return
 
-                val finalText = extractTextFromExpression(o.allChildren)
+                val finalText = extractTextFromExpression(stringLiteralExpression.allChildren)
 
                 addAnnotationElementUsingText(
                     text = finalText,
                     currentPackagePath = currentPackagePath,
                     annotationInfo = annotationInfo,
-                    textRange = o.textRange
+                    textRange = stringLiteralExpression.textRange
                 )
-                super.visitStringLiteralExpression(o)
+                super.visitStringLiteralExpression(stringLiteralExpression)
             }
         })
 
@@ -105,7 +108,6 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
     override fun doAnnotate(collectedInfo: ImageIconAnnotationInfo?): Map<ImageIconAnnotationInfo.AnnotatableElement, GutterIconRenderer>? {
 
         val editor = collectedInfo?.editor ?: return null
-        val project = editor.project ?: return null
         val timestamp = collectedInfo.timestamp
         val document = editor.document
 
@@ -122,7 +124,7 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
                 return null
             }
 
-            val gutterIconRenderer: GutterIconRenderer? = getResourceGutterIconRenderer(
+            val gutterIconRenderer: GutterIconRenderer? = createGutterIconRenderer(
                 project,
                 element.image
             )
@@ -139,7 +141,13 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
         annotationResult: Map<ImageIconAnnotationInfo.AnnotatableElement, GutterIconRenderer>?,
         holder: AnnotationHolder
     ) {
-        GutterIconCache.getInstance(file.project).renderIcon(annotationResult, holder)
+        annotationResult?.forEach { (annotatableElement, gutterIconRenderer) ->
+            // Show image in gutter icon
+            holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+                .range(annotatableElement.textRange)
+                .gutterIconRenderer(gutterIconRenderer)
+                .create()
+        }
     }
 
     // Determines if compatible in Dumb mode (during indexing)
@@ -196,8 +204,6 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
     }
 
     private fun extractTextFromTemplateEntry(templateEntry: DartPsiCompositeElement): String? {
-        val templateEntryContainingFile = templateEntry.containingFile
-
         val expression: DartExpression? = when (templateEntry) {
             is DartShortTemplateEntryImpl -> templateEntry.expression
 
@@ -206,7 +212,11 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
             else -> return null
         }
 
-        when (val resolvedReference = expression?.reference?.resolve()?.context) {
+        if (expression == null) return null
+
+        val expressionText = expression.text
+
+        when (val resolvedReference = expression.reference?.resolve()?.context) {
             is DartVarAccessDeclaration -> {
                 return extractTextFromVarDeclaration(resolvedReference)
             }
@@ -214,10 +224,10 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
             null -> {
                 var variableExpression: DartExpression? = null
 
-                templateEntryContainingFile.accept(
+                expression.containingFile.accept(
                     object : DartRecursiveVisitor() {
                         override fun visitVarDeclarationList(declarationList: DartVarDeclarationList) {
-                            if (declarationList.varAccessDeclaration.text.contains(expression?.text ?: "")) {
+                            if (declarationList.varAccessDeclaration.text.contains(expressionText ?: "")) {
                                 variableExpression = declarationList.varInit?.expression
                             }
 
@@ -227,7 +237,6 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
                 )
 
                 return extractTextFromExpression(variableExpression?.allChildren ?: return null)
-
             }
         }
 
@@ -245,30 +254,26 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
         return null
     }
 
-    private fun getResourceGutterIconRenderer(
+    private fun createGutterIconRenderer(
         project: Project,
         imagePath: String,
     ): GutterIconRenderer? {
         val resourceFile = LocalFileSystem.getInstance().findFileByPath(imagePath) ?: return null
-        // Updating the GutterIconCache in the background thread to include the icon.
-        GutterIconCache.getInstance(project).getIcon(resourceFile)
-        return FlutterGutterImageIconRenderer(resourceFile, project)
+
+        return GutterIconRenderer(resourceFile, project)
     }
 
+}
 
-    /**
-     * Provider used to enable/disable Android resource gutter icons.
-     *
-     * This provider doesn't directly provide any of the resource gutter icons; that's done by
-     * [ImageResourceExternalAnnotator]. But since those are [ExternalAnnotator]s, they don't show up in Gutter icon
-     * settings. This provider does show up in settings, and the other annotators check its value to determine if they should be enabled.
-     */
-    class LineMarkerProvider : LineMarkerProviderDescriptor() {
-        override fun getName(): String = "Flutter image resource preview"
+/**
+ * Provider used to enable/disable the gutter icons.
+ *
+ * Read more at https://github.com/JetBrains/android/blob/master/android/src/org/jetbrains/android/AndroidResourceExternalAnnotatorBase.java#L55`
+ */
+private class LineMarkerProvider : LineMarkerProviderDescriptor() {
+    override fun getName(): String = "Flutter image resource preview"
 
-        override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
-    }
-
+    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
 }
 
 // To force re-highlighting after changing plugin specific settings

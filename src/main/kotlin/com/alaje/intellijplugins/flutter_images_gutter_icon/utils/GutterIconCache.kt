@@ -1,14 +1,9 @@
 package com.alaje.intellijplugins.flutter_images_gutter_icon.utils
 
 
-import com.alaje.intellijplugins.flutter_images_gutter_icon.GutterIconFactory
-import com.alaje.intellijplugins.flutter_images_gutter_icon.ImageIconAnnotationInfo
 import com.google.common.collect.Maps
-import com.intellij.lang.annotation.AnnotationHolder
-import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -17,71 +12,74 @@ import javax.swing.Icon
 import kotlin.properties.Delegates.observable
 
 
-private fun defaultRenderIcon(
-    file: VirtualFile,
-) = GutterIconFactory.createIcon(file)
-
+/**
+ * A service class that manages the caching of gutter icons for files in a project.
+ * This class ensures that icons are rendered and cached efficiently, taking into account
+ * high DPI displays and file modifications.
+ * */
 @Service(Service.Level.PROJECT)
-class GutterIconCache(
-    private val highDpiSupplier: () -> Boolean,
-    private val renderIcon: (VirtualFile) -> Icon?
-) {
+class GutterIconCache {
+    /**
+     * A concurrent map that stores the cached icons with their associated file paths as keys.
+     * The cache helps in reusing already rendered icons, improving performance by avoiding
+     * redundant icon rendering operations.
+     */
     private val thumbnailCache: MutableMap<String, TimestampedIcon> = Maps.newConcurrentMap()
-    private var highDpiDisplay by observable(false) { _, oldValue, newValue ->
+
+    /**
+     * A property that indicates whether the display is high DPI. It is observed for changes,
+     * and if the display type changes, the cache is cleared to ensure icons are rendered
+     * appropriately for the new display type. Not doing so means that icons rendered once display settings
+     * change to a high DPI display will be blurry and inconsistent
+     */
+    private var isHighDpiDisplay by observable(false) { _, oldValue, newValue ->
         if (oldValue != newValue) thumbnailCache.clear()
     }
 
-    constructor() : this(
-        UIUtil::isRetina,
-        {vf -> defaultRenderIcon(vf)}
-    )
+    private val fileDocManager by lazy{ FileDocumentManager.getInstance() }
 
     /**
      * Returns the potentially cached [Icon] rendered from the [file], or `null` if none could be
      * rendered.
      */
     fun getIcon(file: VirtualFile): Icon? {
-        return (getTimestampedIconFromCache(file) ?: renderAndCacheIcon(file)).icon
+        return (getTimestampedIconFromCache(file) ?: createAndCacheIcon(file)).icon
     }
 
-    private fun renderAndCacheIcon(
+    /**
+    * Creates the icon using the [GutterIconUtils] and caches it for future accesses.
+    * */
+    private fun createAndCacheIcon(
         file: VirtualFile,
     ): TimestampedIcon {
-        return TimestampedIcon(renderIcon(file), file.modificationStamp).also {
+        val icon = GutterIconUtils.createIcon(file)
+
+        return TimestampedIcon(icon, file.modificationStamp).also {
             thumbnailCache[file.path] = it
         }
     }
 
     /**
-     * Returns the [Icon] for the associated [file] if it is already rendered and stored in the cache,
+     * Returns the [Icon] for the associated [file] if it is already stored in the cache,
      * otherwise `null`.
      */
     private fun getTimestampedIconFromCache(file: VirtualFile): TimestampedIcon? {
-        highDpiDisplay = highDpiSupplier()
-        val icon = thumbnailCache[file.path]?.takeIf { it.hasNotBeenModified(file) }
+        isHighDpiDisplay = UIUtil.isRetina()
 
+        val icon = thumbnailCache[file.path]?.takeIf { it.hasNotBeenModified(file, fileDocManager) }
         return icon
-    }
-
-    data class TimestampedIcon(val icon: Icon?, val timestamp: Long) {
-        fun hasNotBeenModified(file: VirtualFile): Boolean {
-            return timestamp == file.modificationStamp && !FileDocumentManager.getInstance().isFileModified(file)
-        }
-    }
-
-    fun renderIcon(
-        annotationResult: Map<ImageIconAnnotationInfo.AnnotatableElement, GutterIconRenderer>?,
-        holder: AnnotationHolder
-    ) {
-        annotationResult?.forEach { (k: ImageIconAnnotationInfo.AnnotatableElement, v: GutterIconRenderer) ->
-            // show image in gutter icon
-            holder.newSilentAnnotation(
-                HighlightSeverity.INFORMATION
-            ).range(k.textRange).gutterIconRenderer(v).create()
-        }
     }
 
     companion object {
         @JvmStatic fun getInstance(project: Project): GutterIconCache = project.service()
     }
+
+}
+
+private data class TimestampedIcon(val icon: Icon?, val timestamp: Long) {
+
+    fun hasNotBeenModified(file: VirtualFile, fileDocManager: FileDocumentManager): Boolean {
+        return timestamp == file.modificationStamp && !fileDocManager.isFileModified(file)
+    }
+
 }
