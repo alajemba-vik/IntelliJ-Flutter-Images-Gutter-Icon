@@ -1,6 +1,5 @@
 package com.alaje.intellijplugins.flutter_images_gutter_icon
 
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.daemon.LineMarkerSettings
@@ -8,10 +7,12 @@ import com.intellij.ide.EssentialHighlightingMode.isEnabled
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -106,8 +107,11 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
 
     // Collected file information is passed in to collect highlighting data
     override fun doAnnotate(collectedInfo: ImageIconAnnotationInfo?): Map<ImageIconAnnotationInfo.AnnotatableElement, GutterIconRenderer>? {
-
         val editor = collectedInfo?.editor ?: return null
+
+        // To avoid race conditions
+        if (DumbService.getInstance(project).isDumb) return null
+
         val timestamp = collectedInfo.timestamp
         val document = editor.document
 
@@ -116,21 +120,29 @@ class ImageResourceExternalAnnotator : ExternalAnnotator<
         for (element in (collectedInfo.elements)) {
             try {
                 ProgressManager.checkCanceled()
+
+                if (editor.isDisposed || (document.modificationStamp) > timestamp) {
+                    return null
+                }
+
+                val gutterIconRenderer: GutterIconRenderer? = ReadAction
+                    .nonBlocking<GutterIconRenderer> {
+                        createGutterIconRenderer(
+                            project,
+                            element.image
+                        )
+                    }
+                    .executeSynchronously()
+
+                if (gutterIconRenderer != null) {
+                    rendererMap[element] = gutterIconRenderer
+                }
+
             } catch (e: ProcessCanceledException) {
                 return null
             }
 
-            if (editor.isDisposed || (document.modificationStamp) > timestamp) {
-                return null
-            }
 
-            val gutterIconRenderer: GutterIconRenderer? = createGutterIconRenderer(
-                project,
-                element.image
-            )
-            if (gutterIconRenderer != null) {
-                rendererMap[element] = gutterIconRenderer
-            }
         }
         return rendererMap
     }
@@ -276,10 +288,6 @@ private class LineMarkerProvider : LineMarkerProviderDescriptor() {
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
 }
 
-// To force re-highlighting after changing plugin specific settings
-fun refreshAnnotators(project: Project) {
-    DaemonCodeAnalyzer.getInstance(project).restart()
-}
 
 private fun String.hasImageFileExtension(): Boolean {
     return contains(Regex(".*\\.(png|jpg|jpeg|gif|bmp|wbmp|webp|svg)"))

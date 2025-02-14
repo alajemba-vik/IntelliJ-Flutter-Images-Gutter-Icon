@@ -33,13 +33,6 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <externalAnnotator language="Dart" implementationClass="com.alaje.intellijplugins.flutter_images_gutter_icon.ImageResourceExternalAnnotator"/>
-
-        <projectConfigurable
-                parentId="tools"
-                instance="com.alaje.intellijplugins.flutter_images_gutter_icon.settings.ProjectSettingsConfigurable"
-                id="com.alaje.intellijplugins.flutter_images_gutter_icon.settings.ProjectSettingsConfigurable"
-                displayName="Flutter Images Gutter Icon"
-                nonDefaultProject="true"/>
     </extensions>
 
 
