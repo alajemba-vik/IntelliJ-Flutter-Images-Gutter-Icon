@@ -21,7 +21,7 @@ import kotlin.math.min
 /**
  * A utility object with functions that help generate scaled-down [Icon] instances from image files to display in the gutter.
  */
-internal object GutterIconUtils {
+object GutterIconUtils {
     private val LOG = Logger.getInstance(
         GutterIconUtils::class.java
     )

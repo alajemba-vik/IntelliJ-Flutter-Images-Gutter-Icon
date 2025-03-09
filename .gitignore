@@ -15,6 +15,7 @@ out/
 src/.idea/
 .idea/
 .intellijPlatform/
+.kotlin/
 
 ### Eclipse ###
 .apt_generated

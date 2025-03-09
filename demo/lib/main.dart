@@ -39,6 +39,19 @@ class SettingsScreen extends StatelessWidget {
           ],
         ),
         ListTile(
+          leading: Image.asset(
+            DemoDrawables.pluginIcon,
+            height: 30,
+            width: 40,
+          ),
+          title: Text('Wi-Fi'),
+          subtitle: Text('Connect to networks'),
+          trailing: Switch(
+            value: true,
+            onChanged: (bool value) {},
+          ),
+        ),
+        ListTile(
           leading: Image.asset("assets/images/test_image2.png"),
           title: Text('Wi-Fi'),
           subtitle: Text('Connect to networks'),
@@ -50,15 +63,6 @@ class SettingsScreen extends StatelessWidget {
         ListTile(
           leading: Image.asset(DemoDrawables.testImage),
           title: Text('Bluetooth'),
-          subtitle: Text('Connect to devices'),
-          trailing: Switch(
-            value: false,
-            onChanged: (bool value) {},
-          ),
-        ),
-        ListTile(
-          leading: SvgPicture.asset(DemoDrawables.pluginIcon),
-          title: Text('Wi-Fi'),
           subtitle: Text('Connect to devices'),
           trailing: Switch(
             value: false,

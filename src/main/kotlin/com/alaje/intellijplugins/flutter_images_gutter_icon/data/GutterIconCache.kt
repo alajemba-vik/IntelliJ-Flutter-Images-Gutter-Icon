@@ -1,6 +1,6 @@
-package com.alaje.intellijplugins.flutter_images_gutter_icon.utils
+package com.alaje.intellijplugins.flutter_images_gutter_icon.data
 
-
+import com.alaje.intellijplugins.flutter_images_gutter_icon.utils.GutterIconUtils
 import com.google.common.collect.Maps
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -9,8 +9,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.UIUtil
 import javax.swing.Icon
-import kotlin.properties.Delegates.observable
-
+import kotlin.properties.Delegates
 
 /**
  * A service class that manages the caching of gutter icons for files in a project.
@@ -32,7 +31,7 @@ class GutterIconCache {
      * appropriately for the new display type. Not doing so means that icons rendered once display settings
      * change to a high DPI display will be blurry and inconsistent
      */
-    private var isHighDpiDisplay by observable(false) { _, oldValue, newValue ->
+    private var isHighDpiDisplay by Delegates.observable(false) { _, oldValue, newValue ->
         if (oldValue != newValue) thumbnailCache.clear()
     }
 
