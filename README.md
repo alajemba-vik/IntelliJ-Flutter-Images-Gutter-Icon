@@ -10,12 +10,9 @@ It supports bitmap formats like **png** and **jpeg** and vector file formats lik
 
 ## 🏗️️ Architecture
 
-**ImageResourceExternalAnnotator:**
-- Custom class that extends IntelliJ's `ExternalAnnotator` to annotate parts of the code as references to image files, thereby allowing the plugin to display their gutter icons.
-- Communicates with `GutterIconRenderer`.
-
-**GutterIconRenderer:**
-- Custom class that extends IntelliJ's `GutterIconRenderer` to represent an icon in the gutter with its navigation actions.
+**ImageResourceLineMarkerProvider:**
+- Custom class that extends IntelliJ's `RelatedItemLineMarkerProvider` to provide line markers for image resources in the code.
+- Handles the logic for identifying image references and adding gutter icons.
 - Communicates with `GutterIconCache`.
 
 **GutterIconCache:**
@@ -35,11 +32,8 @@ You can install the plugin directly from Android Studio:
 
 ## How to use?
 
-Once the plugin is installed, provide your file pattern in the settings for your IDE:
-1. Navigate to _Settings > Tools > Flutter Images Gutter Icon_
-2. Provide the image file patterns as needed
-3. Apply the settings and your project will be updated automatically 💃🏾
-   
+Once the plugin is installed, restart your IDE and open any Flutter project that contains image resources 💃🏾
+
 <br>
 
 ## 🎉 What's new?
@@ -57,8 +51,8 @@ Check out the [CHANGELOG](CHANGELOG.md).
 - Knowledge about Kotlin
 - Knowledge about building plugins for the IntelliJ Platform or the willingness to dig around the [documentation](https://plugins.jetbrains.com/docs/intellij/creating-plugin-project.html)
   
-### Configuration
-During development, this plugin was run using Android studio, so this is set up as the default IDE:
+### Configuration (Optional)
+During initial development, this plugin was run using Android studio, so this is set up as the default IDE:
 ```
 //build.gradle.kts
 
