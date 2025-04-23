@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.alaje.intellijplugins"
-version = "1.4"
+version = "1.4.1"
 
 repositories {
     mavenCentral()
@@ -21,9 +21,13 @@ repositories {
 dependencies {
     implementation(files("libs/svgSalamander-1.1.4.jar"))
     intellijPlatform {
-        intellijIdeaCommunity("2024.3.2.2")
+        local("/Applications/Android Studio.app")
+        //androidStudio("2024.1.1.11")
+        //androidStudio("2024.2.2.15")
+        //intellijIdeaCommunity("2024.3.2.2")
+
         // Must be compatible with IntelliJ version
-        plugins("Dart:243.23654.44")
+        plugins("Dart:241.15989.9")
         bundledPlugins("com.intellij.java", "org.jetbrains.kotlin")
         pluginVerifier()
     }
@@ -34,8 +38,8 @@ intellijPlatform {
 
     pluginConfiguration {
         ideaVersion {
-            sinceBuild = "241"
-            untilBuild = provider { null }
+            sinceBuild = "241.14494.240"
+            untilBuild = "241.*"
         }
         val changeLogFile = Paths.get("CHANGELOG.md")
         changeNotes = Files.readString(changeLogFile)
@@ -51,8 +55,7 @@ intellijPlatform {
 }
 
 tasks {
-    // Java 21 is required since 2024.2
-    val jvmVersion = "21"
+    val jvmVersion = "17"
     // Set the JVM compatibility versions
     withType<JavaCompile> {
         sourceCompatibility = jvmVersion
@@ -61,11 +64,5 @@ tasks {
 
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = jvmVersion
-    }
-}
-
-tasks.named<RunIdeTask>("runIde") {
-    jvmArgumentProviders += CommandLineArgumentProvider {
-        listOf("-Didea.kotlin.plugin.use.k2=true")
     }
 }
