@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.alaje.intellijplugins"
-version = "1.4"
+version = "1.4.5"
 
 repositories {
     mavenCentral()
@@ -21,9 +21,9 @@ repositories {
 dependencies {
     implementation(files("libs/svgSalamander-1.1.4.jar"))
     intellijPlatform {
-        intellijIdeaCommunity("2024.3.2.2")
+        intellijIdeaCommunity("2025.1")
         // Must be compatible with IntelliJ version
-        plugins("Dart:243.23654.44")
+        plugins("Dart:251.23774.318")
         bundledPlugins("com.intellij.java", "org.jetbrains.kotlin")
         pluginVerifier()
     }
@@ -34,8 +34,8 @@ intellijPlatform {
 
     pluginConfiguration {
         ideaVersion {
-            sinceBuild = "241"
-            untilBuild = provider { null }
+            sinceBuild = "251.23774.435"
+            untilBuild = "251.*"
         }
         val changeLogFile = Paths.get("CHANGELOG.md")
         changeNotes = Files.readString(changeLogFile)
