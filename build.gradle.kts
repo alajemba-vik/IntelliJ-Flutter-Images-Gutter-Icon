@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.alaje.intellijplugins"
-version = "1.4"
+version = "1.4.3"
 
 repositories {
     mavenCentral()
@@ -23,7 +23,7 @@ dependencies {
     intellijPlatform {
         intellijIdeaCommunity("2024.3.2.2")
         // Must be compatible with IntelliJ version
-        plugins("Dart:243.23654.44")
+        plugins("Dart:243.23177")
         bundledPlugins("com.intellij.java", "org.jetbrains.kotlin")
         pluginVerifier()
     }
@@ -34,8 +34,8 @@ intellijPlatform {
 
     pluginConfiguration {
         ideaVersion {
-            sinceBuild = "241"
-            untilBuild = provider { null }
+            sinceBuild = "243.21565.193"
+            untilBuild = "243.*"
         }
         val changeLogFile = Paths.get("CHANGELOG.md")
         changeNotes = Files.readString(changeLogFile)
